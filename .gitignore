@@ -1,0 +1,44 @@
+# C++ build artifacts
+*.exe
+*.out
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.lib
+*.dylib
+
+# CMake build system
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Visual Studio Code
+.vscode/
+
+# JetBrains IDEs (CLion)
+.idea/
+*.iml
+
+# Qt Creator
+*.user
+*.user.*
+*.pro.user
+*.pro.user.*
+
+# Backup and temporary files
+*~
+*.swp
+*.log
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
