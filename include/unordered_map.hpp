@@ -12,9 +12,8 @@
  * 
  * @tparam Key Tipo de la clave.
  * @tparam Value Tipo del valor asociado a cada clave.
- * @tparam TABLE_SIZE Tamaño de la tabla hash (por defecto 101).
  */
-template <typename Key, typename Value, size_t TABLE_SIZE = 101>
+template <typename Key, typename Value>
 class Unordered_Map {
     private:
         /**
@@ -22,7 +21,7 @@ class Unordered_Map {
          */
         struct key_value_pair {
             Key key;            ///< Clave del par clave-valor.
-            Value value;        ///< Valor asociado a la clave.
+            Value *value;        ///< Recibe puntero al valor asociado a la clave.
             key_value_pair* next; ///< Puntero al siguiente par clave-valor en caso de colisión.
 
             /**
@@ -31,35 +30,30 @@ class Unordered_Map {
              * @param k Clave del par clave-valor.
              * @param v Valor asociado a la clave.
              */
-            key_value_pair(const Key& k, const Value& v) : key(k), value(v), next(nullptr) {}
+            key_value_pair(const Key& k, Value *v) : key(k), value(v), next(nullptr) {}
         };
 
-        key_value_pair *TABLE[TABLE_SIZE]; ///< Tabla hash que contiene los pares clave-valor.
-
+        key_value_pair **m_table; ///< Tabla hash que contiene los pares clave-valor.
+        size_t m_size; ///< Tamaño actual de la tabla hash.
+        size_t m_count; ///< Contador de elementos en la tabla hash.
         /**
          * @brief Función hash que calcula el índice para una clave utilizando el algoritmo djb2.
          * 
          * @param key La clave para la cual se calculará el índice.
          * @return El índice calculado en la tabla hash.
          */
-        size_t hash_fuction(const Key& key) const {
-            size_t hash_value = 5381; ///< Valor inicial del hash (un número primo utilizado como semilla).
-            const uint8_t* key_bytes = reinterpret_cast<const uint8_t*>(&key);
-
-            for (size_t i = 0; i < sizeof(Key); ++i) {
-                hash_value = ((hash_value << 5) + hash_value) + key_bytes[i]; // Fórmula djb2: hash * 33 + c
-            }
-
-            return hash_value % TABLE_SIZE; // Retorna el índice en la tabla
-        }
+        size_t hash_fuction(const Key& key) const;
 
     public:
+        Unordered_Map(const Unordered_Map&) = delete; ///< Elimina el constructor de copia.
+        Unordered_Map& operator=(const Unordered_Map&) = delete; ///< Elimina el operador de asignación.
         /**
          * @brief Constructor de Unordered_Map.
          * Inicializa la tabla hash, estableciendo todos los punteros a nullptr.
+         * @param size Tamaño de la tabla hash.
          */
-        Unordered_Map();
-
+        Unordered_Map(size_t size);
+        
         /**
          * @brief Destructor de Unordered_Map.
          * Libera la memoria ocupada por los elementos almacenados en la tabla hash.
@@ -73,7 +67,7 @@ class Unordered_Map {
          * @param key Clave que se desea insertar.
          * @param value Valor asociado a la clave.
          */
-        void insert(const Key& key, const Value& value);
+        void insert(const Key& key, Value *value);
 
         /**
          * @brief Busca un valor asociado a una clave en la tabla hash.
@@ -89,6 +83,12 @@ class Unordered_Map {
          * @param key Clave del elemento que se desea eliminar.
          */
         void erase(const Key& key);
+
+        /**
+         * @brief Devuelve un aproximado del tamaño en memoria de la tabla hash.
+         * 
+         */
+        size_t info_map() const;
 
 };
 
