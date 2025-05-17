@@ -41,6 +41,13 @@ private:
      */
     uint8_t dias_en_mes(uint8_t mes, int16_t anio) const;
 
+    /**
+     * @brief Compara esta fecha con otra.
+     * @param otra Otra fecha a comparar.
+     * @return -1 si esta < otra, 0 si son iguales, 1 si esta > otra.
+     */
+    uint8_t comparar(const Fecha& otra) const;
+
 public:
     /**
      * @brief Constructor por defecto. Inicializa con 01/01/1970. (Año Cero Unix \m/)
@@ -77,13 +84,7 @@ public:
      */
     bool cargar_desde_cadena(const char* cadena);
 
-    /**
-     * @brief Compara esta fecha con otra.
-     * @param otra Otra fecha a comparar.
-     * @return -1 si esta < otra, 0 si son iguales, 1 si esta > otra.
-     */
-    int comparar(const Fecha& otra) const;
-
+    
     /// Operador de igualdad.
     bool operator==(const Fecha& otra) const;
 

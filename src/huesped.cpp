@@ -31,7 +31,7 @@
  */
 #define LOG_ERROR(fn, msg) std::cerr << "[Huesped/" << fn << "]: " << msg << std::endl
 
- Huesped::Huesped(uint64_t documento, char *password, uint16_t antiguedad, float puntuacion) 
+ Huesped::Huesped(uint64_t documento, char *password, uint8_t antiguedad, float puntuacion) 
      : m_documento(documento),  
        m_antiguedad(antiguedad), 
        m_puntuacion(puntuacion),
@@ -77,7 +77,7 @@
   * 
   * @return La antigüedad del usuario en meses.
   */
- uint16_t Huesped::get_antiguedad() const 
+ uint8_t Huesped::get_antiguedad() const 
  { 
      return m_antiguedad; 
  }

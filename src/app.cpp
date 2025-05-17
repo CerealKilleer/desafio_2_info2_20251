@@ -7,10 +7,12 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstring>
 #include <sstream>
 #include <string>
 #include <ctime>
 #include "huesped.hpp"
+#include "anfitrion.hpp"
 #include "unordered_map.hpp"
 #include "fecha.hpp"
 #include "app.hpp"
@@ -18,9 +20,12 @@
 #include "linked_list.hpp"
 
 #define MAX_PASSWORD_LENGTH 20
-#define MEM_LOG(fn, msg) std::cout << "[App/" << fn << "]: " << msg << std::endl
+#define SUCCESS_LOG(fn, msg) std::cout << "[App/" << fn << "]: " << msg << std::endl
+#define ERROR_LOG(fn, msg) std::cerr << "[App/" << fn << "]: " << msg << std::endl
 #define CAMPOS_MAX 9
 #define RESERVAS_SIZE(size) ((size * 1.5) + 1) // Redimensiona la tabla hash al 150% de su tamaño original
+#define HUESPED_FILE "huespedes.txt"
+#define ANFITRION_FILE "anfitriones.txt"
 
 /**
  * @brief Verifica si una reserva está activa comparando la fecha de entrada y la duración con la fecha actual.
@@ -125,8 +130,8 @@ static Unordered_Map<uint64_t, Huesped>* cargar_huespedes(const std::string &arc
     }
 
     archivo.close();
-    MEM_LOG("cargar_usuarios", "Tamaño total de memoria ocupada por los usuarios: " + std::to_string(mem_size) + " bytes");
-    MEM_LOG("cargar_usuarios", "Tamaño total de memoria ocupada por el mapa: " + std::to_string(usuarios->info_map()) + " bytes");
+    SUCCESS_LOG("cargar_usuarios", "Tamaño total de memoria ocupada por los usuarios: " + std::to_string(mem_size) + " bytes");
+    SUCCESS_LOG("cargar_usuarios", "Tamaño total de memoria ocupada por el mapa: " + std::to_string(usuarios->info_map()) + " bytes");
     return usuarios;
 }
  
@@ -219,11 +224,6 @@ static Unordered_Map<uint32_t, Reserva>* leer_reservas(const char* filename, siz
             const char* anotaciones = campos[8].c_str();
             bool activa = esta_activa(fecha_entrada, duracion, fecha);
 
-            Reserva *nueva_reserva = new Reserva(fecha_entrada, duracion, codigo_reserva,
-                                            codigo_alojamiento, documento_huesped,
-                                            metodo_pago, fecha_pago, monto, anotaciones, activa);
-
-            reservas->insert(codigo_reserva, nueva_reserva);
         } catch (const std::exception& e) {
             std::cerr << "Error al convertir campos en línea: " << linea << std::endl;
         }
@@ -234,32 +234,175 @@ static Unordered_Map<uint32_t, Reserva>* leer_reservas(const char* filename, siz
 }
 
 
-void app_main() 
+/**
+ * @brief Esta función busca un huesped en el archivo de huéspedes
+ * 
+ * @param huesped_file Nombre del archivo de huéspedes.
+ * @param documento Documento del huésped a buscar.
+ * @param password Contraseña del huésped a buscar.
+ * @return true si el huésped fue encontrado, false en caso contrario.
+ */
+static Huesped * buscar_huesped(const char *huesped_file, uint64_t documento, char *password)
 {
-    Linked_List<int*> lista;
+    bool encontrado = false;
+    uint64_t doc;
+    char pass[MAX_PASSWORD_LENGTH];
+    uint16_t antiguedad;
+    float puntuacion;
 
-    // Insertar punteros a enteros dinámicos
-    for (int i = 1; i <= 5; ++i) {
-        int* p = new int(i * 10);  // Crear entero dinámico
-        lista.insert_back(p);
+    std::ifstream archivo(huesped_file);
+
+    if (!archivo.is_open()) {
+        std::cerr << "Error al abrir el archivo de huéspedes." << std::endl;
+        return nullptr;
     }
 
-    // Recorrer la lista e imprimir los valores
-    Node<int*>* current = lista.get_head();
-    while (current) {
-        std::cout << *(current->data) << " -> ";
-        current = lista.get_next(current);
+    while (archivo >> doc >> pass >> antiguedad >> puntuacion) {
+        size_t len = strlen(pass) + 1;
+        if (doc == documento && memcmp(pass, password, len) == 0) {
+            Huesped *huesped = new Huesped(doc, pass, antiguedad, puntuacion);
+            return huesped; //Memoria dinamica, la libera el llamador
+        }
     }
-    std::cout << "NULL\n";
-
-    // Limpiar los datos (enteros dinámicos)
-    lista.clear_data();
-
-    // Ahora destruir la lista (nodos)
-    // Se ejecuta en el destructor automáticamente al salir de main
-
+    archivo.close();
+    return nullptr;
 }
 
+/**
+ * @brief Esta función busca un anfitrion en el archivo de anfitriones
+ * 
+ * @param huesped_file Nombre del archivo de anfitriones.
+ * @param documento Documento del anfitrion a buscar.
+ * @param password Contraseña del anfitrion a buscar.
+ * @return true si el anfitrion fue encontrado, false en caso contrario.
+ */
+static Anfitrion * buscar_anfitrion(const char *anfitrion_file, uint64_t documento, char *password)
+{
+    bool encontrado = false;
+    uint64_t doc;
+    char pass[MAX_PASSWORD_LENGTH];
+    uint16_t antiguedad;
+    float puntuacion;
 
+    std::ifstream archivo(anfitrion_file);
 
+    if (!archivo.is_open()) {
+        std::cerr << "Error al abrir el archivo de anfitriones." << std::endl;
+        return nullptr;
+    }
 
+    while (archivo >> doc >> pass >> antiguedad >> puntuacion) {
+        size_t len = strlen(pass) + 1;
+        if (doc == documento && memcmp(pass, password, len) == 0) {
+            Anfitrion *anfitrion = new Anfitrion(doc, pass, antiguedad, puntuacion);
+            return anfitrion; //Memoria dinamica, la libera el llamador
+        }
+    }
+    archivo.close();
+    return nullptr;
+}
+
+/**
+ * @brief Inicia sesión para un huésped.
+ * 
+ * @param huesped Referencia a un puntero de tipo Huesped.
+ * @return true si el huesped existe, false en caso contrario.
+ */
+static bool iniciar_sesion_huesped(Huesped **huesped_user)
+{
+    uint64_t documento;
+    char password[MAX_PASSWORD_LENGTH];
+    std::cout << "Ingrese su documento: ";
+    std::cin >> documento;
+    std::cout << "Ingrese su contraseña: ";
+    std::cin >> password;
+
+    *huesped_user = buscar_huesped(HUESPED_FILE, documento, password);
+
+    if (*huesped_user == nullptr) {
+        ERROR_LOG("iniciar_sesion", "No se encontró el usuario o la contraseña es incorrecta.");
+        return false;
+    }
+
+    return true;
+}
+
+static bool iniciar_sesion_anfitrion(Anfitrion **anfitrion_user)
+{
+    uint64_t documento;
+    char password[MAX_PASSWORD_LENGTH];
+    std::cout << "Ingrese su documento: ";
+    std::cin >> documento;
+    std::cout << "Ingrese su contraseña: ";
+    std::cin >> password;
+
+    *anfitrion_user = buscar_anfitrion(ANFITRION_FILE, documento, password);
+
+    if (*anfitrion_user == nullptr) {
+        ERROR_LOG("iniciar_sesion", "No se encontró el usuario o la contraseña es incorrecta.");
+        return false;
+    }
+
+    return true;
+}
+
+void zona_anfitrion(void)
+{
+    Anfitrion *anfitrion_user = nullptr;
+    if (!iniciar_sesion_anfitrion(&anfitrion_user)) {
+        std::cerr << "Error al iniciar sesión." << std::endl;
+        return;
+    }
+
+    std::cout << "Bienvenido " << (anfitrion_user)->get_documento() << std::endl;
+    std::cout << "Antiguedad: " << (anfitrion_user)->get_antiguedad() << " meses" << std::endl;
+
+    delete anfitrion_user; // Liberar memoria del anfitrión
+}
+
+/**
+ * @brief Zona de operaciones para el huésped.
+ * 
+ * Esta función permite al huésped realizar operaciones como iniciar sesión,
+ * ver reservas, etc.
+ */
+void zona_huesped(void)
+{
+    Huesped *huesped_user = nullptr;
+    if (!iniciar_sesion_huesped(&huesped_user)) {
+        std::cerr << "Error al iniciar sesión." << std::endl;
+        return;
+    }
+
+    std::cout << "Bienvenido " << (huesped_user)->get_documento() << std::endl;
+    std::cout << "Antiguedad: " << (huesped_user)->get_antiguedad() << " meses" << std::endl;
+    
+    delete huesped_user; // Liberar memoria del huésped
+}
+
+void app_main() 
+{
+    uint8_t opc = 0;
+    std::cout << "Bienvenido a la aplicación de reservas." << std::endl;
+    std::cout << "Seleccione su perfil:\n1. Huesped\n2. Anfitrion\n3. Salir" << std::endl;
+    std::cin >> opc;
+    opc = opc - '0'; // Convertir al numerito :)
+
+    switch (opc) {
+        case 1:
+            std::cout << "Bienvenido Huesped" << std::endl;
+            zona_huesped();
+            break;
+        case 2:
+            std::cout << "Bienvenido Anfitrion" << std::endl;
+            zona_anfitrion();
+            break;
+        case 3:
+            std::cout << "Saliendo..." << std::endl;
+            return;
+        default:
+            std::cout << "Opción no válida." << std::endl;
+            return;
+    }
+    return;
+}

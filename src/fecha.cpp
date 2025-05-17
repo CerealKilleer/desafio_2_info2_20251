@@ -121,7 +121,7 @@ void Fecha::a_cadena(char* destino) const
  *              0 si son iguales,
  *              1 si esta fecha es mayor.
  */
-int Fecha::comparar(const Fecha& otra) const 
+uint8_t Fecha::comparar(const Fecha& otra) const 
 {
     if (anio != otra.anio) return anio < otra.anio ? -1 : 1;
     if (mes != otra.mes) return mes < otra.mes ? -1 : 1;

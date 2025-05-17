@@ -24,9 +24,8 @@ class Huesped
          * @param password Contraseña del huesped.
          * @param antiguedad Antigüedad del huesped en meses.
          * @param puntuacion Puntuación del huesped, por ejemplo, en un sistema de calificación.
-         * @param anfitrion Indica si el huesped es un anfitrión o no.
          */
-        Huesped(uint64_t documento, char *password, uint16_t antiguedad, float puntuacion);
+        Huesped(uint64_t documento, char *password, uint8_t antiguedad, float puntuacion);
         /**
          * @brief Obtiene el documento del huesped.
          * 
@@ -46,7 +45,7 @@ class Huesped
          * 
          * @return La antigüedad del huesped en meses.
          */
-        uint16_t get_antiguedad() const;
+        uint8_t get_antiguedad() const;
 
         /**
          * @brief Obtiene la puntuación del huesped.

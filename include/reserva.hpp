@@ -9,13 +9,13 @@
  */
 class Reserva {
 private:
-    char * m_fecha_entrada;       ///< Fecha de entrada al alojamiento.
+    Fecha * m_fecha_entrada;       ///< Fecha de entrada al alojamiento.
     uint16_t m_duracion;          ///< Duración de la estancia en noches.
     uint32_t m_codigo_reserva;    ///< Código único de la reservación.
     uint32_t m_codigo_alojamiento;///< Código del alojamiento reservado.
     uint64_t m_documento_huesped; ///< Documento del huésped (ID).
     char m_metodo_pago;           ///< Método de pago: 'P' (PSE) o 'T' (Tarjeta de crédito).
-    char * m_fecha_pago;          ///< Fecha en que se realizó el pago.
+    Fecha * m_fecha_pago;          ///< Fecha en que se realizó el pago.
     float m_monto;                ///< Monto total pagado.
     char * m_anotaciones;         ///< Anotaciones del huésped (máx. 1000 caracteres).
     bool m_activa;               ///< Indica si la reserva está activa o no.
@@ -34,17 +34,13 @@ public:
      * @param notas Anotaciones del huésped.
      * @param activa Indica si la reserva está activa o no.
      */
-    Reserva(const char *fecha_entrada, uint16_t duracion,
+    Reserva(Fecha *fecha_entrada, uint16_t duracion,
             uint32_t cod_reserva, uint32_t cod_alojamiento,
             uint64_t doc_huesped, char metodo_pago,
-            const char *fecha_pago, float monto,
+            Fecha *fecha_pago, float monto,
             const char* notas, bool activa);
 
-    /**
-     * @brief Imprime los datos de la reserva en consola.
-     */
-    void imprimir() const;
-
+   
     /**
      * @brief Destructor de la clase Reserva.
      */
@@ -53,7 +49,7 @@ public:
     /** 
      * @brief Obtiene la fecha de entrada. 
     */
-    const char* get_fecha_entrada() const;
+    const Fecha* get_fecha_entrada() const;
 
     /** 
      * @brief Obtiene la duración en noches. 
@@ -83,7 +79,7 @@ public:
     /** 
      * @brief Obtiene la fecha del pago. 
     */
-    const char* get_fecha_pago() const;
+    const Fecha* get_fecha_pago() const;
 
     /** 
      * @brief Obtiene el monto pagado. 

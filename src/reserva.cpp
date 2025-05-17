@@ -2,53 +2,25 @@
 #include <cstring>
 #include <cstdlib>
 #include "reserva.hpp"
+#include "fecha.hpp"
 
-Reserva::Reserva(const char *fecha_entrada, uint16_t duracion,
+Reserva::Reserva(Fecha *fecha_entrada, uint16_t duracion,
                  uint32_t cod_reserva, uint32_t cod_alojamiento,
                  uint64_t doc_huesped, char metodo_pago,
-                 const char *fecha_pago, float monto,
+                 Fecha *fecha_pago, float monto,
                  const char* notas, bool activa)
 
     : m_duracion(duracion), m_codigo_reserva(cod_reserva),
       m_codigo_alojamiento(cod_alojamiento), m_documento_huesped(doc_huesped),
       m_metodo_pago(metodo_pago), m_monto(monto), m_fecha_entrada(nullptr),
       m_fecha_pago(nullptr), m_anotaciones(nullptr), m_activa(activa)
-{
-    m_fecha_entrada = new char[LONG_FECHA_CADENA + 1];
-    
-    if (m_fecha_entrada == nullptr) {
-        std::cerr << "Error al asignar memoria para fecha de entrada." << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    
-    m_fecha_pago = new char[LONG_FECHA_CADENA + 1];
-    
-    if (m_fecha_pago == nullptr) {
-        std::cerr << "Error al asignar memoria para fecha de pago." << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    size_t size = strlen(notas);
-    m_anotaciones = new char[size + 1];
-
-    if (m_anotaciones == nullptr) {
-        std::cerr << "Error al asignar memoria para anotaciones." << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    strncpy(m_fecha_entrada, fecha_entrada, LONG_FECHA_CADENA);
-    m_fecha_entrada[LONG_FECHA_CADENA] = '\0'; 
-    strncpy(m_fecha_pago, fecha_pago, LONG_FECHA_CADENA);
-    m_fecha_pago[LONG_FECHA_CADENA] = '\0';
-    strncpy(m_anotaciones, notas, size);
-    m_anotaciones[size] = '\0';
-}
+{}
 
 /**
  * @brief Obtiene la fecha de entrada de la reserva.
  * @return Cadena de caracteres con la fecha en formato dd/mm/aaaa.
  */
-const char* Reserva::get_fecha_entrada() const {
+const Fecha* Reserva::get_fecha_entrada() const {
     return m_fecha_entrada;
 }
 
@@ -96,7 +68,7 @@ char Reserva::get_metodo_pago() const {
  * @brief Obtiene la fecha en que se realizó el pago.
  * @return Cadena de caracteres con la fecha en formato dd/mm/aaaa.
  */
-const char* Reserva::get_fecha_pago() const {
+const Fecha* Reserva::get_fecha_pago() const {
     return m_fecha_pago;
 }
 
