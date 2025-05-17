@@ -81,8 +81,9 @@ class Unordered_Map {
          * @brief Elimina un par clave-valor de la tabla hash.
          * 
          * @param key Clave del elemento que se desea eliminar.
+         * @return Un puntero al valor eliminado o nullptr si no se encuentra. Será liberado por el llamador.
          */
-        void erase(const Key& key);
+        Value *erase(const Key& key);
 
         /**
          * @brief Devuelve un aproximado del tamaño en memoria de la tabla hash.
@@ -90,6 +91,13 @@ class Unordered_Map {
          */
         size_t info_map() const;
 
+        /**
+         * @brief Limpia la memoria ocupada por los valores de la tabla hash.
+         * 
+         * Esta función libera la memoria ocupada (dinámica) por los valores almacenados en la tabla hash.
+         * 
+         */
+        void clear_values();
 };
 
 #include "unordered_map.tpp"

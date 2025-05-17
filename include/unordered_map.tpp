@@ -38,13 +38,32 @@ Unordered_Map<Key, Value>::~Unordered_Map()
         while (current != nullptr) {
             key_value_pair* to_delete = current;
             current = current->next;
-            delete to_delete->value; // Libera el valor
             delete to_delete;
         }
     }
     delete[] m_table;
     m_table = nullptr;
     std::cout << "Mapa destruido" << std::endl;
+}
+
+/**
+ * @brief Libera la memoria ocupada (si la hay) por los valores de la tabla hash.
+ * Es responsabilidad del llamador liberar la memoria ocupada por los valores.
+ */
+template <typename Key, typename Value>
+void Unordered_Map<Key, Value>::clear_values() 
+{
+    size_t iters = 0;
+    for (size_t i = 0; i < m_size; ++i) {
+        key_value_pair* current = m_table[i];
+        while (current != nullptr) {
+            iters++;
+            delete current->value;
+            current->value = nullptr;
+            current = current->next;
+        }
+    }
+    std::cout << "Eliminar todos los valores del mapa ocupó " << iters << " iteraciones." << std::endl;
 }
 
 /**
@@ -104,14 +123,16 @@ Value* Unordered_Map<Key, Value>::find(const Key& key)
  * Si la clave no existe, no realiza ninguna acción.
  * 
  * @param key Clave del elemento que se desea eliminar.
+ * @return Un puntero al valor eliminado o nullptr si no se encuentra. Será liberado por el llamador.
  */
+ 
 template <typename Key, typename Value>
-void Unordered_Map<Key, Value>::erase(const Key& key) 
+Value *Unordered_Map<Key, Value>::erase(const Key& key) 
 {
     size_t index = hash_fuction(key);
     key_value_pair* current = m_table[index];
     key_value_pair* previous = nullptr;
-
+    Value *value = nullptr; // Inicializa el puntero a nullptr
     while (current != nullptr) {
         if (current->key == key) {
             if (previous == nullptr) {
@@ -121,14 +142,15 @@ void Unordered_Map<Key, Value>::erase(const Key& key)
                 // Eliminar un elemento intermedio o final
                 previous->next = current->next;
             }
-            delete current->value; // Libera el valor
+            value = current->value; // Guarda el valor antes de eliminar
             delete current;
             m_count--;
-            return;
+            return value;
         }
         previous = current;
         current = current->next;
     }
+    return nullptr; // Si no se encontró la clave, retorna nullptr
 }
 
 /**

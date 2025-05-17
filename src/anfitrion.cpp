@@ -1,0 +1,124 @@
+/**
+ * @file anfitrion.cpp
+ * @brief Implementación de la clase Anfitrion.
+ * 
+ * Esta clase representa a un anfitrion con sus datos básicos como documento, 
+ * contraseña, antigüedad, puntuación y si es anfitrión o no. También proporciona
+ * métodos para acceder a estos datos y calcular el tamaño en memoria de un objeto Anfitrion.
+ */
+
+ #include "anfitrion.hpp"
+ #include <stdint.h>
+ #include <string>
+ #include <cstring>
+ #include <iostream>
+ /**
+  * @brief Constructor de la clase Anfitrion.
+  * 
+  * Inicializa un objeto Anfitrion con los datos proporcionados.
+  * 
+  * @param documento Documento del anfitrion (ID o similar).
+  * @param password Contraseña del anfitrion.
+  * @param antiguedad Antigüedad del anfitrion en meses.
+  * @param puntuacion Puntuación del anfitrion (0.0 a 5.0).
+  */
+
+/**
+ * @def LOG_ERROR(fn, msg)
+ * @brief Macro para imprimir errores con el contexto de Alojamiento.
+ * @param fn Nombre de la función donde ocurre el error.
+ * @param msg Mensaje de error a imprimir.
+ */
+#define LOG_ERROR(fn, msg) std::cerr << "[Anfitrion/" << fn << "]: " << msg << std::endl
+
+ Anfitrion::Anfitrion(uint64_t documento, char *password, uint16_t antiguedad, float puntuacion) 
+     : m_documento(documento),  
+       m_antiguedad(antiguedad), 
+       m_puntuacion(puntuacion),
+       m_password(nullptr)
+ {
+        if (password == nullptr) {
+            LOG_ERROR("Anfitrion", "La contraseña es nula");
+            m_password = nullptr;
+            return;
+        }
+        size_t len = strlen(password) + 1;
+        m_password = new char[len];
+        if (m_password == nullptr) {
+            LOG_ERROR("Anfitrion", "Error al asignar memoria para la contraseña");
+            return;
+        }
+        strncpy(m_password, password, len);
+        m_password[len - 1] = '\0';
+ };
+ 
+ /**
+  * @brief Obtiene el documento del anfitrion.
+  * 
+  * @return Referencia constante al documento del anfitrion.
+  */
+ uint64_t Anfitrion::get_documento() const
+ { 
+     return m_documento; 
+ }
+ 
+ /**
+  * @brief Obtiene la contraseña del anfitrion.
+  * 
+  * @return Referencia constante a la contraseña del anfitrion.
+  */
+ const char *Anfitrion::get_password() const
+ { 
+     return m_password; 
+ }
+ 
+ /**
+  * @brief Obtiene la antigüedad del anfitrion.
+  * 
+  * @return La antigüedad del anfitrion en meses.
+  */
+ uint16_t Anfitrion::get_antiguedad() const 
+ { 
+     return m_antiguedad; 
+ }
+ 
+ /**
+  * @brief Obtiene la puntuación del anfitrion.
+  * 
+  * @return La puntuación del anfitrion.
+  */
+ float Anfitrion::get_puntuacion() const 
+ { 
+     return m_puntuacion; 
+ }
+ 
+
+ /**
+  * @brief Calcula el tamaño total en memoria de un objeto Anfitrion.
+  * 
+  * Calcula el tamaño total de un objeto Anfitrion, incluyendo la memoria ocupada
+  * por los strings `m_documento` y `m_password`. Esta función no garantiza
+  * el tamaño exacto debido a la naturaleza de las implementaciones de std::string.
+  * 
+  * @return El tamaño total en bytes ocupado por el objeto Anfitrion.
+  */
+ size_t Anfitrion::get_obj_size() const 
+ { 
+    size_t total_size = sizeof(Anfitrion); 
+    total_size += strlen(m_password) + 1;
+ 
+    return total_size;
+ }
+
+/**
+* @brief Destructor de la clase Anfitrion.
+* 
+* Libera los recursos ocupados por el objeto Anfitrion.
+*/
+
+Anfitrion::~Anfitrion() 
+{
+    delete[] m_password;
+    std::cout << "Anfitrion: " << m_documento << " destruido" << std::endl;
+}
+ 

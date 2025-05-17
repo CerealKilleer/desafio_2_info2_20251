@@ -1,27 +1,26 @@
 /**
  * @file usuario.cpp
- * @brief Implementación de la clase Usuario.
+ * @brief Implementación de la clase Huesped.
  * 
  * Esta clase representa a un usuario con sus datos básicos como documento, 
  * contraseña, antigüedad, puntuación y si es anfitrión o no. También proporciona
- * métodos para acceder a estos datos y calcular el tamaño en memoria de un objeto Usuario.
+ * métodos para acceder a estos datos y calcular el tamaño en memoria de un objeto Huesped.
  */
 
- #include "usuario.hpp"
+ #include "huesped.hpp"
  #include <stdint.h>
  #include <string>
  #include <cstring>
  #include <iostream>
  /**
-  * @brief Constructor de la clase Usuario.
+  * @brief Constructor de la clase Huesped.
   * 
-  * Inicializa un objeto Usuario con los datos proporcionados.
+  * Inicializa un objeto Huesped con los datos proporcionados.
   * 
   * @param documento Documento del usuario (ID o similar).
   * @param password Contraseña del usuario.
   * @param antiguedad Antigüedad del usuario en meses.
   * @param puntuacion Puntuación del usuario (0.0 a 5.0).
-  * @param anfitrion Indica si el usuario es un anfitrión o no.
   */
 
 /**
@@ -30,24 +29,23 @@
  * @param fn Nombre de la función donde ocurre el error.
  * @param msg Mensaje de error a imprimir.
  */
-#define LOG_ERROR(fn, msg) std::cerr << "[Usuario/" << fn << "]: " << msg << std::endl
+#define LOG_ERROR(fn, msg) std::cerr << "[Huesped/" << fn << "]: " << msg << std::endl
 
- Usuario::Usuario(uint64_t documento, char *password, uint16_t antiguedad, float puntuacion, bool anfitrion) 
+ Huesped::Huesped(uint64_t documento, char *password, uint16_t antiguedad, float puntuacion) 
      : m_documento(documento),  
        m_antiguedad(antiguedad), 
-       m_puntuacion(puntuacion), 
-       m_anfitrion(anfitrion),
+       m_puntuacion(puntuacion),
        m_password(nullptr)
  {
         if (password == nullptr) {
-            LOG_ERROR("Usuario", "La contraseña es nula");
+            LOG_ERROR("Huesped", "La contraseña es nula");
             m_password = nullptr;
             return;
         }
         size_t len = strlen(password) + 1;
         m_password = new char[len];
         if (m_password == nullptr) {
-            LOG_ERROR("Usuario", "Error al asignar memoria para la contraseña");
+            LOG_ERROR("Huesped", "Error al asignar memoria para la contraseña");
             return;
         }
         strncpy(m_password, password, len);
@@ -59,7 +57,7 @@
   * 
   * @return Referencia constante al documento del usuario.
   */
- uint64_t Usuario::get_documento() const
+ uint64_t Huesped::get_documento() const
  { 
      return m_documento; 
  }
@@ -69,7 +67,7 @@
   * 
   * @return Referencia constante a la contraseña del usuario.
   */
- const char *Usuario::get_password() const
+ const char *Huesped::get_password() const
  { 
      return m_password; 
  }
@@ -79,7 +77,7 @@
   * 
   * @return La antigüedad del usuario en meses.
   */
- uint16_t Usuario::get_antiguedad() const 
+ uint16_t Huesped::get_antiguedad() const 
  { 
      return m_antiguedad; 
  }
@@ -89,47 +87,38 @@
   * 
   * @return La puntuación del usuario.
   */
- float Usuario::get_puntuacion() const 
+ float Huesped::get_puntuacion() const 
  { 
      return m_puntuacion; 
  }
  
+
  /**
-  * @brief Obtiene si el usuario es anfitrión.
+  * @brief Calcula el tamaño total en memoria de un objeto Huesped.
   * 
-  * @return `true` si el usuario es anfitrión, `false` en caso contrario.
-  */
- bool Usuario::get_anfitrion() const 
- { 
-     return m_anfitrion; 
- }
- 
- /**
-  * @brief Calcula el tamaño total en memoria de un objeto Usuario.
-  * 
-  * Calcula el tamaño total de un objeto Usuario, incluyendo la memoria ocupada
+  * Calcula el tamaño total de un objeto Huesped, incluyendo la memoria ocupada
   * por los strings `m_documento` y `m_password`. Esta función no garantiza
   * el tamaño exacto debido a la naturaleza de las implementaciones de std::string.
   * 
-  * @return El tamaño total en bytes ocupado por el objeto Usuario.
+  * @return El tamaño total en bytes ocupado por el objeto Huesped.
   */
- size_t Usuario::get_obj_size() const 
+ size_t Huesped::get_obj_size() const 
  { 
-    size_t total_size = sizeof(Usuario); 
+    size_t total_size = sizeof(Huesped); 
     total_size += strlen(m_password) + 1;
  
     return total_size;
  }
 
 /**
-* @brief Destructor de la clase Usuario.
+* @brief Destructor de la clase Huesped.
 * 
-* Libera los recursos ocupados por el objeto Usuario.
+* Libera los recursos ocupados por el objeto Huesped.
 */
 
-Usuario::~Usuario() 
+Huesped::~Huesped() 
 {
     delete[] m_password;
-    std::cout << "Usuario: " << m_documento << " destruido" << std::endl;
+    std::cout << "Huesped: " << m_documento << " destruido" << std::endl;
 }
  

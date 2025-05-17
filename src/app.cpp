@@ -10,11 +10,12 @@
 #include <sstream>
 #include <string>
 #include <ctime>
-#include "usuario.hpp"
+#include "huesped.hpp"
 #include "unordered_map.hpp"
 #include "fecha.hpp"
 #include "app.hpp"
 #include "reserva.hpp"
+#include "linked_list.hpp"
 
 #define MAX_PASSWORD_LENGTH 20
 #define MEM_LOG(fn, msg) std::cout << "[App/" << fn << "]: " << msg << std::endl
@@ -54,12 +55,12 @@ static bool esta_activa(const char *fecha_entrada, uint8_t duracion, const char 
 static void obtener_fecha_actual(char* buffer, size_t buffer_size);
 
 /**
- * @brief Carga los usuarios desde un archivo de texto y los almacena en un mapa hash.
+ * @brief Carga los huespedes desde un archivo de texto y los almacena en un mapa hash.
  * 
- * @param archivo_nombre Nombre del archivo que contiene los datos de los usuarios.
- * @return Un puntero a Unordered_Map que contiene los usuarios cargados.
+ * @param archivo_nombre Nombre del archivo que contiene los datos de los huesped.
+ * @return Un puntero a Unordered_Map que contiene los huspedes cargados.
  */
-static Unordered_Map<uint64_t, Usuario>* cargar_usuarios(const std::string &archivo_nombre);
+static Unordered_Map<uint64_t, Huesped>* cargar_huespedes(const std::string &archivo_nombre);
 
 /**
  * @brief Divide una línea separada por ';' en un arreglo de campos.
@@ -87,7 +88,7 @@ static void obtener_fecha_actual(char* buffer, size_t buffer_size)
     std::strftime(buffer, buffer_size, "%d/%m/%Y", tiempo_local);
 }
 
-static Unordered_Map<uint64_t, Usuario>* cargar_usuarios(const std::string &archivo_nombre) 
+static Unordered_Map<uint64_t, Huesped>* cargar_huespedes(const std::string &archivo_nombre) 
 {
     /*
     * @brief Carga los usuarios desde un archivo de texto y los almacena en un mapa hash.
@@ -114,11 +115,11 @@ static Unordered_Map<uint64_t, Usuario>* cargar_usuarios(const std::string &arch
     archivo.close();
     archivo.open(archivo_nombre);
 
-    Unordered_Map<uint64_t, Usuario>* usuarios = new Unordered_Map<uint64_t, Usuario>(RESERVAS_SIZE(size));
+    Unordered_Map<uint64_t, Huesped>* usuarios = new Unordered_Map<uint64_t, Huesped>(RESERVAS_SIZE(size));
 
     for (size_t i = 0; i < size; ++i) {
         archivo >> documento >> password >> antiguedad >> puntuacion >> anfitrion;
-        Usuario *user = new Usuario(documento, password, antiguedad, puntuacion, anfitrion);
+        Huesped *user = new Huesped(documento, password, antiguedad, puntuacion);
         mem_size += user->get_obj_size();
         usuarios->insert(documento, user);
     }
@@ -235,21 +236,28 @@ static Unordered_Map<uint32_t, Reserva>* leer_reservas(const char* filename, siz
 
 void app_main() 
 {
-    Unordered_Map<uint32_t, Reserva>*reservas;
-    size_t cantidad_leida; 
-    char fecha_actual[11];
-    obtener_fecha_actual(fecha_actual, sizeof(fecha_actual));
-    std::cout << "Fecha actual: " << fecha_actual << std::endl;
-    reservas = leer_reservas("reservaciones.txt", cantidad_leida, fecha_actual);
+    Linked_List<int*> lista;
 
-    if (reservas == nullptr) {
-        std::cerr << "No se leyeron reservas." << std::endl;
-        return;
+    // Insertar punteros a enteros dinámicos
+    for (int i = 1; i <= 5; ++i) {
+        int* p = new int(i * 10);  // Crear entero dinámico
+        lista.insert_back(p);
     }
 
-    std::cout << "Reservas leídas: " << cantidad_leida << std::endl;
+    // Recorrer la lista e imprimir los valores
+    Node<int*>* current = lista.get_head();
+    while (current) {
+        std::cout << *(current->data) << " -> ";
+        current = lista.get_next(current);
+    }
+    std::cout << "NULL\n";
 
-    delete reservas;
+    // Limpiar los datos (enteros dinámicos)
+    lista.clear_data();
+
+    // Ahora destruir la lista (nodos)
+    // Se ejecuta en el destructor automáticamente al salir de main
+
 }
 
 
