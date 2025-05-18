@@ -35,7 +35,8 @@
      : m_documento(documento),  
        m_antiguedad(antiguedad), 
        m_puntuacion(puntuacion),
-       m_password(nullptr)
+       m_password(nullptr),
+       m_alojamientos(nullptr)
  {
         if (password == nullptr) {
             LOG_ERROR("Anfitrion", "La contraseña es nula");
@@ -50,6 +51,7 @@
         }
         strncpy(m_password, password, len);
         m_password[len - 1] = '\0';
+        m_alojamientos = new Linked_List<Alojamiento*>();
  };
  
  /**
@@ -111,6 +113,40 @@
  }
 
 /**
+ * @brief Agrega un alojamiento a la lista de alojamientos del anfitrion.
+ * 
+ * @param alojamiento Puntero al objeto Alojamiento a agregar.
+ * @return Alojamiento* Puntero al alojamiento agregado, o nullptr si hubo error.
+ */
+
+Alojamiento* Anfitrion::set_alojamiento(Alojamiento* alojamiento)
+{
+    if (alojamiento == nullptr) {
+        LOG_ERROR("set_alojamiento", "El alojamiento es nulo");
+        return nullptr;
+    }
+
+    m_alojamientos->insert_front(alojamiento);
+    return alojamiento;
+}
+
+void Anfitrion::mostrar_alojamientos(Fecha &desde, Fecha &hasta) const
+{
+    if (m_alojamientos == nullptr) {
+        std::cout << "No hay alojamientos disponibles." << std::endl;
+        return;
+    }
+
+    Node<Alojamiento*>* current = m_alojamientos->get_head();
+    while (current != nullptr) {
+        Alojamiento* alojamiento = current->data;
+        alojamiento->mostrar_reservas(desde, hasta);
+        std::cout << "------------------------" << std::endl;
+        current = m_alojamientos->get_next(current);
+    }
+}
+
+/**
 * @brief Destructor de la clase Anfitrion.
 * 
 * Libera los recursos ocupados por el objeto Anfitrion.
@@ -119,6 +155,9 @@
 Anfitrion::~Anfitrion() 
 {
     delete[] m_password;
+    delete m_alojamientos;
+    m_alojamientos = nullptr;
+    m_password = nullptr;
     std::cout << "Anfitrion: " << m_documento << " destruido" << std::endl;
 }
  

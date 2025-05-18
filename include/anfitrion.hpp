@@ -2,7 +2,8 @@
 #define __ANFITRION_HPP__
 #include <stdint.h>
 #include <string>
-
+#include "linked_list.hpp"
+#include "alojamiento.hpp"
 /**
  * @class Anfitrion
  * @brief Clase que representa a un anfitrion con información personal y de acceso.
@@ -67,6 +68,21 @@ class Anfitrion
         size_t get_obj_size() const;
 
         /**
+         * @brief Agrega un alojamiento a la lista de alojamientos del anfitrion.
+         * 
+         * @param alojamiento Puntero al alojamiento a agregar.
+         * @return retorna el puntero al alojamiento agregado.
+         */
+        Alojamiento* set_alojamiento(Alojamiento* alojamiento);
+
+        /**
+         * @brief Muestra los alojamientos del anfitrion.
+         * 
+         * Recorre la lista de alojamientos y muestra la información de cada uno.
+         */
+        void mostrar_alojamientos(Fecha &desde, Fecha &hasta) const;
+
+        /**
          * @brief Destructor de la clase Anfitrion.
          * 
          * Libera los recursos ocupados por el objeto Anfitrion.
@@ -78,6 +94,7 @@ class Anfitrion
         char * m_password;         ///< Contraseña del anfitrion.
         uint16_t m_antiguedad;     ///< Antigüedad del anfitrion en meses.
         float m_puntuacion;        ///< Puntuación del usuario.
+        Linked_List<Alojamiento*> *m_alojamientos; ///< Lista de reservas del anfitrion.
 };
 
 #endif

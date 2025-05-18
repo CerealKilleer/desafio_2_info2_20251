@@ -22,34 +22,14 @@
 #define MAX_PASSWORD_LENGTH 20
 #define SUCCESS_LOG(fn, msg) std::cout << "[App/" << fn << "]: " << msg << std::endl
 #define ERROR_LOG(fn, msg) std::cerr << "[App/" << fn << "]: " << msg << std::endl
-#define CAMPOS_MAX 9
+#define CAMPOS_MAX_ALOJAMIENTO 9
+#define CAMPOS_MAX_RESERVA 9
 #define RESERVAS_SIZE(size) ((size * 1.5) + 1) // Redimensiona la tabla hash al 150% de su tamaño original
 #define HUESPED_FILE "huespedes.txt"
 #define ANFITRION_FILE "anfitriones.txt"
-
-/**
- * @brief Verifica si una reserva está activa comparando la fecha de entrada y la duración con la fecha actual.
- * 
- * @param fecha_entrada Fecha de entrada en formato "dd/mm/aaaa".
- * @param duracion Duración de la reserva en noches.
- * @param fecha_actual Fecha actual en formato "dd/mm/aaaa".
- * @return true si la reserva está activa, false en caso contrario.
- */
-
-static bool esta_activa(const char *fecha_entrada, uint8_t duracion, const char *fecha_actual)
-{
-    Fecha *fecha_inicio = new Fecha();
-    fecha_inicio->cargar_desde_cadena(fecha_entrada);
-    Fecha *fecha_fin = fecha_inicio->sumar_noches(duracion);
-    delete fecha_inicio;
-    Fecha *actual = new Fecha();
-    actual->cargar_desde_cadena(fecha_actual);
-    bool activa = (*actual < *fecha_fin);
-    delete fecha_fin;
-    delete actual;
-
-    return activa;
-}
+#define ALOJAMIENTO_FILE "alojamientos.txt"
+#define RESERVAS_FILE "reservaciones.txt"
+#define ESTA_ACTIVA(fin, sistema) (fin > sistema) // Verifica si la reserva está activa
 
 /**
  * @brief Obtiene la fecha actual del sistema en formato "dd/mm/aaaa".
@@ -76,14 +56,19 @@ static Unordered_Map<uint64_t, Huesped>* cargar_huespedes(const std::string &arc
  * @return int Cantidad de campos extraídos.
  */
 static uint32_t dividir_linea(const std::string &linea, std::string *campos, uint8_t max_campos);
+
 /**
- * @brief Lee reservas desde un archivo de texto con formato separado por ';' y crea objetos Reserva.
+ * @brief Lee el archivo de reservas y carga las reservas para cada alojamiento
  * 
  * @param filename Ruta al archivo de texto.
- * @param num_reservas Referencia a una variable donde se guardará la cantidad de reservas leídas.
+ * @param alojamientos Mapa hash de alojamientos.
+ * @param num_reservas Referencia a una variable donde se guardará la cantidad de reservas leidas
  * @return Mapa hash que contiene las reservas leídas.
- */
-static Unordered_Map<uint32_t, Reserva>* leer_reservas(const char* filename, size_t &num_reservas, char *fecha);
+*/
+
+static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename, 
+                                        Unordered_Map<uint32_t, Alojamiento>*alojamientos, 
+                                        size_t &num_reservas, Fecha *fecha_actual);
 
 
 static void obtener_fecha_actual(char* buffer, size_t buffer_size) 
@@ -163,15 +148,95 @@ static uint32_t dividir_linea(const std::string &linea, std::string *campos, uin
 }
 
 /**
- * @brief Lee reservas desde un archivo de texto con formato separado por ';' y crea objetos Reserva.
+ * @brief Lee el archivo de alojamientos y carga los alojamientos correspondientes a un anfitrion
  * 
  * @param filename Ruta al archivo de texto.
- * @param num_reservas Referencia a una variable donde se guardará la cantidad de reservas leídas.
- * @param fecha Fecha actual en formato "dd/mm/aaaa".
+ * @param num_reservas Referencia a una variable donde se guardará la cantidad de alojamientos leidos
+ * @param id_anfitrion ID del anfitrion para seleccionar sus alojamientos.
  * @return Mapa hash que contiene las reservas leídas.
 */
 
-static Unordered_Map<uint32_t, Reserva>* leer_reservas(const char* filename, size_t &num_reservas, char *fecha) 
+static Unordered_Map<uint32_t, Alojamiento>* leer_alojamientos(const char* filename, Anfitrion *anfitrion, size_t &num_alojamientos) 
+{
+    std::ifstream archivo(filename);
+    if (!archivo.is_open()) {
+        std::cerr << "Error al abrir el archivo: " << filename << std::endl;
+        return 0;
+    }
+
+    std::string linea;
+    num_alojamientos = 0;
+
+    while (std::getline(archivo, linea))
+        num_alojamientos++;
+
+    archivo.close();
+    archivo.open(filename);
+
+    if (num_alojamientos == 0) {
+        std::cerr << "El archivo está vacío o no se pudo leer." << std::endl;
+        return nullptr;
+    }
+
+    Unordered_Map<uint32_t, Alojamiento>*Alojamientos = new Unordered_Map<uint32_t, Alojamiento>(num_alojamientos);
+    num_alojamientos = 0;
+
+    if (Alojamientos == nullptr) {
+        std::cerr << "Error al asignar memoria para los alojamientos." << std::endl;
+        return nullptr;
+    }
+
+    std::string campos[CAMPOS_MAX_ALOJAMIENTO];
+
+    for (size_t alojamiento = 0; std::getline(archivo, linea); alojamiento++) {
+        uint8_t campos_extraidos = dividir_linea(linea, campos, CAMPOS_MAX_ALOJAMIENTO);
+        if (campos_extraidos < CAMPOS_MAX_ALOJAMIENTO) {
+            std::cerr << "Línea con menos campos de los esperados: " << linea << std::endl;
+            continue;
+        }
+
+        //Ahora se puede usar el arreglo campos para crear la reserva
+        //Usamos un try-catch para manejar errores de conversión
+        //y evitar que el programa se detenga
+        try {
+            const char* nombre = campos[0].c_str();
+            uint32_t codigo_alojamiento = static_cast<uint32_t>(std::stoi(campos[1]));
+            uint64_t documento_anfitrion = static_cast<uint64_t>(std::stoull(campos[2]));
+            const char* departamento = campos[3].c_str();
+            const char* municipio = campos[4].c_str();
+            uint8_t tipo = static_cast<uint8_t>(std::stoi(campos[5]));
+            const char* direccion = campos[6].c_str();
+            float precio = std::stof(campos[7]);
+            const char* amenidades = campos[8].c_str();
+            uint64_t anfitrion_doc = anfitrion->get_documento();
+            if (documento_anfitrion == anfitrion_doc) {
+                Alojamiento *alojamiento = new Alojamiento(codigo_alojamiento, nombre, documento_anfitrion,
+                                                          direccion, departamento, municipio, tipo, precio, amenidades);
+                Alojamientos->insert(codigo_alojamiento, alojamiento);
+                anfitrion->set_alojamiento(alojamiento);
+                num_alojamientos++;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error al convertir campos en línea: " << linea << std::endl;
+        }
+    }
+
+    archivo.close();
+    return Alojamientos;
+}
+
+/**
+ * @brief Lee el archivo de reservas y carga las reservas para cada alojamiento
+ * 
+ * @param filename Ruta al archivo de texto.
+ * @param alojamientos Mapa hash de alojamientos.
+ * @param num_reservas Referencia a una variable donde se guardará la cantidad de reservas leidas
+ * @return Mapa hash que contiene las reservas leídas.
+*/
+
+static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename, 
+                                        Unordered_Map<uint32_t, Alojamiento>**alojamientos, 
+                                        size_t &num_reservas, Fecha *fecha_actual) 
 {
     std::ifstream archivo(filename);
     if (!archivo.is_open()) {
@@ -193,18 +258,17 @@ static Unordered_Map<uint32_t, Reserva>* leer_reservas(const char* filename, siz
         return nullptr;
     }
 
-    Unordered_Map<uint32_t, Reserva>*reservas = new Unordered_Map<uint32_t, Reserva>(num_reservas);
+    Unordered_Map<uint32_t, Reserva>* reservas = new Unordered_Map<uint32_t, Reserva>(num_reservas);
 
     if (reservas == nullptr) {
         std::cerr << "Error al asignar memoria para las reservas." << std::endl;
-        return 0;
+        return nullptr;
     }
-
-    std::string campos[CAMPOS_MAX];
+    std::string campos[CAMPOS_MAX_RESERVA];
 
     for (size_t reserva = 0; std::getline(archivo, linea); reserva++) {
-        uint8_t campos_extraidos = dividir_linea(linea, campos, CAMPOS_MAX);
-        if (campos_extraidos < CAMPOS_MAX) {
+        uint8_t campos_extraidos = dividir_linea(linea, campos, CAMPOS_MAX_RESERVA);
+        if (campos_extraidos < CAMPOS_MAX_RESERVA) {
             std::cerr << "Línea con menos campos de los esperados: " << linea << std::endl;
             continue;
         }
@@ -213,16 +277,38 @@ static Unordered_Map<uint32_t, Reserva>* leer_reservas(const char* filename, siz
         //Usamos un try-catch para manejar errores de conversión
         //y evitar que el programa se detenga
         try {
-            const char* fecha_entrada = campos[0].c_str();
+            const char *fecha_inicio = campos[0].c_str();
             uint16_t duracion = static_cast<uint16_t>(std::stoi(campos[1]));
             uint32_t codigo_reserva = static_cast<uint32_t>(std::stoi(campos[2]));
             uint32_t codigo_alojamiento = static_cast<uint32_t>(std::stoi(campos[3]));
             uint64_t documento_huesped = static_cast<uint64_t>(std::stoull(campos[4]));
-            char metodo_pago = campos[5].empty() ? 'X' : campos[5][0];
-            const char* fecha_pago = campos[6].c_str();
+            const char metodo_pago = campos[5][0];
+            const char *fecha_pago = campos[6].c_str();
             float monto = std::stof(campos[7]);
-            const char* anotaciones = campos[8].c_str();
-            bool activa = esta_activa(fecha_entrada, duracion, fecha);
+            const char *anotaciones = campos[8].c_str();
+
+            Fecha *fecha_inicio_obj = new Fecha();
+            fecha_inicio_obj->cargar_desde_cadena(fecha_inicio);
+            Fecha *fecha_pago_obj = new Fecha();
+            fecha_pago_obj->cargar_desde_cadena(fecha_pago);
+            Fecha *fecha_fin_obj = fecha_inicio_obj->sumar_noches(duracion);
+            Fecha *fecha_final_obj = fecha_inicio_obj->sumar_noches(duracion);
+            bool activa = ESTA_ACTIVA((*fecha_final_obj), (*fecha_actual));
+
+            Reserva *reserva = new Reserva(fecha_inicio_obj, fecha_fin_obj, duracion, codigo_reserva,
+                                            codigo_alojamiento, documento_huesped, metodo_pago,
+                                            fecha_pago_obj, monto, anotaciones, activa);
+
+            Alojamiento *alojamiento = (*alojamientos)->find(reserva->get_codigo_alojamiento());
+            if (alojamiento == nullptr) {
+                delete reserva;
+                reserva = nullptr;
+                continue;
+            }
+
+            reservas->insert(codigo_reserva, reserva);
+            alojamiento->set_reserva(reserva);
+            reserva = nullptr;
 
         } catch (const std::exception& e) {
             std::cerr << "Error al convertir campos en línea: " << linea << std::endl;
@@ -232,7 +318,6 @@ static Unordered_Map<uint32_t, Reserva>* leer_reservas(const char* filename, siz
     archivo.close();
     return reservas;
 }
-
 
 /**
  * @brief Esta función busca un huesped en el archivo de huéspedes
@@ -346,6 +431,12 @@ static bool iniciar_sesion_anfitrion(Anfitrion **anfitrion_user)
     return true;
 }
 
+/**
+ * @brief Zona de operaciones para el anfitrión.
+ * 
+ * Esta función permite al anfitrión realizar operaciones como iniciar sesión,
+ * ver reservas, etc.
+ */
 void zona_anfitrion(void)
 {
     Anfitrion *anfitrion_user = nullptr;
@@ -354,9 +445,68 @@ void zona_anfitrion(void)
         return;
     }
 
-    std::cout << "Bienvenido " << (anfitrion_user)->get_documento() << std::endl;
-    std::cout << "Antiguedad: " << (anfitrion_user)->get_antiguedad() << " meses" << std::endl;
+    uint8_t opc = 0;
+    Unordered_Map<uint32_t, Alojamiento>* Alojamientos = nullptr;
+    Unordered_Map<uint32_t, Reserva>* Reservas = nullptr;
+    size_t num_alojamientos = 0;
+    Fecha *fecha_actual = new Fecha();
+    fecha_actual->cargar_desde_cadena("18/05/2025");
 
+    Alojamientos = leer_alojamientos(ALOJAMIENTO_FILE, anfitrion_user, num_alojamientos);
+    Reservas = leer_reservas(RESERVAS_FILE, &Alojamientos, num_alojamientos, fecha_actual);
+    char fecha_inicio[LONG_FECHA_CADENA + 1];
+    char fecha_fin[LONG_FECHA_CADENA + 1];
+    Fecha *fecha_inicio_obj = nullptr;
+    Fecha *fecha_fin_obj = nullptr;
+    do {
+        std::cout << "Bienvenido Anfitrion" << std::endl;
+        std::cout << "Bienvenido: " << (anfitrion_user)->get_documento() << std::endl;
+        std::cout << "Seleccione:\n1. Consultar reservaciones\n2. Anular reservacion\n3. Salir" << std::endl;
+        std::cin >> opc;
+        opc = opc - '0'; // Convertir al numerito :)
+        switch (opc) {
+            case 1:
+                std::cout << "Consulta por fecha\nDesde: (dd/mm/aaaa): ";
+                std::cin >> fecha_inicio;
+                std::cout << "Hasta: (dd/mm/aaaa): ";
+                std::cin >> fecha_fin;
+                std::cout << "Activas desde: " << fecha_inicio << " hasta: " << fecha_fin << std::endl;
+                fecha_inicio_obj = new Fecha();
+                fecha_fin_obj = new Fecha();
+                if (fecha_inicio_obj->cargar_desde_cadena(fecha_inicio) && fecha_fin_obj->cargar_desde_cadena(fecha_fin)) {
+                    anfitrion_user->mostrar_alojamientos(*fecha_inicio_obj, *fecha_fin_obj);
+                    delete fecha_inicio_obj;
+                    delete fecha_fin_obj;
+                } else {
+                    std::cerr << "Revise el formato de las fechas" << std::endl;
+                }
+                break;
+            case 2:
+                std::cout << "Bienvenido Anfitrion" << std::endl;
+                // Anular reservacion
+                break;
+            case 3:
+                std::cout << "Saliendo..." << std::endl;
+                return;
+            default:
+                std::cout << "Opción no válida." << std::endl;
+                return;
+        }
+    } while (opc != 3);
+
+    if (Alojamientos != nullptr) {
+        Alojamientos->clear_values();
+        delete Alojamientos;
+    }
+
+    if (fecha_actual != nullptr) {
+        delete fecha_actual;
+    }
+
+    if (Reservas != nullptr) {
+        Reservas->clear_values();
+        delete Reservas;
+    }
     delete anfitrion_user; // Liberar memoria del anfitrión
 }
 
@@ -382,6 +532,8 @@ void zona_huesped(void)
 
 void app_main() 
 {
+    zona_anfitrion();
+    /*
     uint8_t opc = 0;
     std::cout << "Bienvenido a la aplicación de reservas." << std::endl;
     std::cout << "Seleccione su perfil:\n1. Huesped\n2. Anfitrion\n3. Salir" << std::endl;
@@ -403,6 +555,6 @@ void app_main()
         default:
             std::cout << "Opción no válida." << std::endl;
             return;
-    }
+    }*/
     return;
 }

@@ -10,6 +10,7 @@
 class Reserva {
 private:
     Fecha * m_fecha_entrada;       ///< Fecha de entrada al alojamiento.
+    Fecha * m_fecha_salida;      ///< Fecha de salida del alojamiento.
     uint16_t m_duracion;          ///< Duración de la estancia en noches.
     uint32_t m_codigo_reserva;    ///< Código único de la reservación.
     uint32_t m_codigo_alojamiento;///< Código del alojamiento reservado.
@@ -34,7 +35,7 @@ public:
      * @param notas Anotaciones del huésped.
      * @param activa Indica si la reserva está activa o no.
      */
-    Reserva(Fecha *fecha_entrada, uint16_t duracion,
+    Reserva(Fecha *fecha_entrada, Fecha *salida, uint16_t duracion,
             uint32_t cod_reserva, uint32_t cod_alojamiento,
             uint64_t doc_huesped, char metodo_pago,
             Fecha *fecha_pago, float monto,
@@ -50,7 +51,11 @@ public:
      * @brief Obtiene la fecha de entrada. 
     */
     const Fecha* get_fecha_entrada() const;
-
+    
+    /** 
+     * @brief Obtiene la fecha de salida. 
+    */
+    const Fecha* get_fecha_salida() const;
     /** 
      * @brief Obtiene la duración en noches. 
     */
@@ -96,6 +101,11 @@ public:
      * @return true si la reserva está activa, false en caso contrario.
      */
     bool get_activa() const;
+
+    /**
+     * @brief Muestra la información de la reserva.
+     */
+    void mostrar() const;
 };
 
 #endif

@@ -1,7 +1,8 @@
 #include <iostream>
 #include <cstring>
 #include "alojamiento.hpp"
-
+#include "reserva.hpp"
+#include "linked_list.hpp"
 /**
  * @def LOG_ERROR(fn, msg)
  * @brief Macro para imprimir errores con el contexto de Alojamiento.
@@ -19,162 +20,36 @@
 #define LOG_SUCCESS(fn, msg) std::cout << "[Alojamiento/" << fn << "]: " << msg << std::endl 
 
 // Constructor
-Alojamiento::Alojamiento()
-    : m_nombre(nullptr),
-      m_codigo(nullptr),
-      m_direccion(nullptr),
-      m_departamento(nullptr),
-      m_municipio(nullptr),
-      m_responsable_id(0),
-      m_tipo(0),
-      m_amenidades(nullptr),
-      m_cant_ameneidades(0)
-{}
+Alojamiento::Alojamiento(uint32_t id, const char* nombre, uint64_t codigo_anfitrion,
+                         const char* direccion, const char* departamento,
+                         const char* municipio, uint8_t tipo, float precio, 
+                         const char* amenidades)
 
-// Métodos
-
-bool Alojamiento::set_nombre(const char* nombre) 
+    : m_id(id), m_codigo_anfitrion(codigo_anfitrion),
+      m_tipo(tipo), m_precio(precio), m_nombre(nullptr), m_direccion(nullptr), 
+      m_departamento(nullptr), m_municipio(nullptr), m_amenidades(nullptr)
 {
-    if (nombre == nullptr)
-        return false;
+    size_t len_nombre = strlen(nombre) + 1;
+    size_t len_direccion = strlen(direccion) + 1;
+    size_t len_departamento = strlen(departamento) + 1;
+    size_t len_municipio = strlen(municipio) + 1;
+    size_t len_amenidades = strlen(amenidades) + 1;
 
-    char* nuevo_nombre = copy_data(nombre, strlen(nombre) + 1);
-
-    if (nuevo_nombre == nullptr) {
-        LOG_ERROR("set_nombre", "Error cargando el nombre en el objeto");
-        return false;
-    }
-
-    delete[] m_nombre;
-    m_nombre = nuevo_nombre;
-
-    return true;
+    m_nombre = copy_data(nombre, len_nombre);
+    m_direccion = copy_data(direccion, len_direccion);
+    m_departamento = copy_data(departamento, len_departamento);
+    m_municipio = copy_data(municipio, len_municipio);
+    m_amenidades = copy_data(amenidades, len_amenidades);
+    m_reservas = new Linked_List<Reserva*>();
 }
 
-bool Alojamiento::set_codigo(const char* codigo) 
-{
-    if (codigo == nullptr)
-        return false;
 
-    char* nuevo_codigo = copy_data(codigo, strlen(codigo) + 1);
-
-    if (nuevo_codigo == nullptr) {
-        LOG_ERROR("set_codigo", "Error cargando el código en el objeto");
-        return false;
-    }
-
-    delete[] m_codigo;
-    m_codigo = nuevo_codigo;
-
-    return true;
-}
-
-bool Alojamiento::set_direccion(const char* direccion) 
-{
-    if (direccion == nullptr)
-        return false;
-
-    char* nueva_direccion = copy_data(direccion, strlen(direccion) + 1);
-
-    if (nueva_direccion == nullptr) {
-        LOG_ERROR("set_direccion", "Error cargando la dirección en el objeto");
-        return false;
-    }
-
-    delete[] m_direccion;
-    m_direccion = nueva_direccion;
-
-    return true;
-}
-
-void Alojamiento::set_responsable_id(uint32_t id)
-{
-    m_responsable_id = id;
-}
-
-bool Alojamiento::set_departamento(const char* dpto) 
-{
-    if (dpto == nullptr)
-        return false;
-
-    char* nuevo_dpto = copy_data(dpto, strlen(dpto) + 1);
-
-    if (nuevo_dpto == nullptr) {
-        LOG_ERROR("set_departamento", "Error cargando el departamento en el objeto");
-        return false;
-    }
-
-    delete[] m_departamento;
-    m_departamento = nuevo_dpto;
-
-    return true;
-}
-
-bool Alojamiento::set_municipio(const char* municipio) 
-{
-    if (municipio == nullptr)
-        return false;
-
-    char* nuevo_municipio = copy_data(municipio, strlen(municipio) + 1);
-
-    if (nuevo_municipio == nullptr) {
-        LOG_ERROR("set_municipio", "Error cargando el municipio en el objeto");
-        return false;
-    }
-
-    delete[] m_municipio;
-    m_municipio = nuevo_municipio;
-
-    return true;
-}
-
-void Alojamiento::set_tipo(uint8_t tipo)
-{
-    m_tipo = tipo;
-}
-
-void Alojamiento::set_precio(uint16_t precio)
-{
-    m_precio = precio;
-}
-
-bool Alojamiento::set_ameneidades(uint8_t cant_ameneidades)
-{
-    m_cant_ameneidades = cant_ameneidades;
-    m_amenidades = new char*[cant_ameneidades];
-    if (m_amenidades == nullptr) {
-        LOG_ERROR("set_ameneidades", "Error creando el arreglo de ameneidades para este objeto");
-        return false;
-    }
-
-    return true;
-}
-
-bool Alojamiento::set_ameneidad(char *ameneidad)
-{
-    static size_t idx;
-    if (ameneidad == nullptr) {
-        LOG_ERROR("set_ameneidad", "La ameneidad es nula");
-        return false;
-    }
-    char *new_ameneidad = new char[strlen(ameneidad) + 1];
-
-    if (new_ameneidad == nullptr) {
-        LOG_ERROR("set_ameneidad", "La ameneidad es nula");
-        return false;
-    }
-    
-    if (idx >= m_cant_ameneidades) {
-        delete[] new_ameneidad;
-        LOG_ERROR("set_ameneidad", "Ya no hay espacio para nuevas ameneidades en el objeto");
-        return false;
-    }
-
-    m_amenidades[idx] = ameneidad;
-    return true;
-}
-
-// Copia segura de memoria
+/**
+ * @brief Copia los datos de una cadena a otra.
+ * @param data Cadena de caracteres a copiar.
+ * @param len Longitud de la cadena a copiar.
+ * @return Puntero a la nueva cadena copiada, o nullptr si hubo error.
+ */
 char* Alojamiento::copy_data(const char* data, size_t len) 
 {
     if (data == nullptr)
@@ -188,16 +63,91 @@ char* Alojamiento::copy_data(const char* data, size_t len)
     return new_data;
 }
 
+/**
+ * @brief Agrega una reserva activa al alojamiento.
+ * @return retorna la referencia a la reserva agregada.
+ */
+
+Reserva* Alojamiento::set_reserva(Reserva* reserva) 
+{
+    if (reserva == nullptr) {
+        LOG_ERROR("set_reserva", "La reserva es nula");
+        return nullptr;
+    }
+
+    m_reservas->insert_front(reserva);
+    return reserva;
+}
+
+/**
+ * @abrief Muestra las reservas activas del alojamiento.
+ */
+void Alojamiento::mostrar_reservas() const
+{
+    if (m_reservas == nullptr) {
+        std::cout << "No hay reservas activas." << std::endl;
+        return;
+    }
+
+    Node<Reserva*>* current = m_reservas->get_head();
+    while (current != nullptr) {
+        Reserva* reserva = current->data;
+        reserva->mostrar();
+        current = m_reservas->get_next(current);
+    }
+}
+
+/** 
+ * @brief Muestra las reservas activas del alojamiento en un rango de fechas.
+ * @param desde Fecha de inicio.
+ * @param hasta Fecha de fin.
+ 
+**/
+void Alojamiento::mostrar_reservas(Fecha &desde, Fecha &hasta) const
+{
+    if (m_reservas == nullptr) {
+        std::cout << "No hay reservas para el alojamiento." << std::endl;
+        return;
+    }
+    
+    Node<Reserva*>* current = m_reservas->get_head();
+    while (current != nullptr) {
+        Reserva* reserva = current->data;
+        
+        if (*(reserva->get_fecha_entrada()) <= hasta && *(reserva->get_fecha_salida()) >= desde) {
+            std::cout << "Alojamiento: " << m_nombre << std::endl;
+            reserva->mostrar();
+        }
+        
+        current = m_reservas->get_next(current);
+    }
+}
+/**
+ * @brief Muestra la información del alojamiento.
+ * 
+ */
+void Alojamiento::mostrar_alojamiento() const
+{
+   std::cout << "------------*------------" << std::endl;
+   std::cout << "ID: " << m_id << std::endl;
+   std::cout << "Nombre: " << m_nombre << std::endl;
+   std::cout << "Código anfitrión: " << m_codigo_anfitrion << std::endl;
+   std::cout << "Dirección: " << m_direccion << std::endl;
+   std::cout << "Departamento: " << m_departamento << std::endl;
+   std::cout << "Municipio: " << m_municipio << std::endl;
+   std::cout << "Tipo: " << (m_tipo == 1 ? "Casa" : "Apartamento") << std::endl;
+   std::cout << "Precio: " << m_precio << std::endl;
+   std::cout << "Amenidades: " << m_amenidades << std::endl;
+   std::cout << "------------*------------" << std::endl;
+}
+
 // Destructor
 Alojamiento::~Alojamiento() 
 {
     delete[] m_nombre;
-    delete[] m_codigo;
     delete[] m_direccion;
     delete[] m_departamento;
     delete[] m_municipio;
-    for (size_t i=0; i < m_cant_ameneidades; i++) {
-        delete[] m_amenidades[i];
-    }
     delete[] m_amenidades;
+    delete m_reservas;
 }

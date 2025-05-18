@@ -46,7 +46,7 @@ private:
      * @param otra Otra fecha a comparar.
      * @return -1 si esta < otra, 0 si son iguales, 1 si esta > otra.
      */
-    uint8_t comparar(const Fecha& otra) const;
+    int32_t comparar(const Fecha& otra) const;
 
 public:
     /**
@@ -74,8 +74,10 @@ public:
     /**
      * @brief Convierte la fecha en una cadena "DD/MM/AAAA".
      * @param destino Puntero a un arreglo de al menos 11 caracteres.
+     * @return Cadena con la fecha formateada.
+     * @note El arreglo destino debe tener al menos 11 caracteres para almacenar la fecha.
      */
-    void a_cadena(char* destino) const;
+    char *a_cadena(char* destino) const;
 
     /**
      * @brief Carga una fecha desde una cadena en formato "DD/MM/AAAA".
@@ -109,6 +111,12 @@ public:
      * @return Nueva fecha resultante.
      */
     Fecha *sumar_noches(uint16_t noches) const;
+
+    /**
+     * @brief Muestra la fecha en formato "DD/MM/AAAA".
+     * @param fecha Fecha a mostrar.
+     */
+    void mostrar_fecha(const Fecha& fecha);
 
 };
 

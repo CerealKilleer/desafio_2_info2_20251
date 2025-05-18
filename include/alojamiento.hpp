@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 #include <cstddef>  // Para size_t
-
+#include "reserva.hpp"
+#include "linked_list.hpp"
 /**
  * @class Alojamiento
  * @brief Representa un alojamiento en una plataforma de alquiler.
@@ -13,16 +14,16 @@
  */
 class Alojamiento {
 private:
-    char* m_nombre;        /**< Nombre del alojamiento */
-    char* m_codigo;        /**< Código único del alojamiento */
-    uint32_t m_responsable_id; /**< ID (cédula) del responsable */
-    char* m_municipio;     /**< Municipio donde se encuentra el alojamiento */
-    char* m_departamento;  /**< Departamento donde se encuentra el alojamiento */
-    uint8_t m_tipo;        /**< Tipo de alojamiento: 1 = Casa, 2 = Apartamento */
-    char* m_direccion;     /**< Dirección física del alojamiento */
-    uint16_t m_precio;       /**< Precio por una noche en el alojamiento */
-    uint8_t m_cant_ameneidades; /**< Cantidad de ameneidades que tiene el alojamiento */
-    char** m_amenidades; /**< Conjunto de ameneidades */
+    uint32_t m_id;                ///< ID del alojamiento.
+    uint64_t m_codigo_anfitrion;  ///< Código del anfitrión.
+    char* m_nombre;              ///< Nombre del alojamiento.
+    char* m_direccion;           ///< Dirección del alojamiento.
+    char* m_departamento;        ///< Departamento del alojamiento.
+    char* m_municipio;          ///< Municipio del alojamiento.
+    uint8_t m_tipo;              ///< Tipo de alojamiento (1 = Casa, 2 = Apartamento).
+    float m_precio;             ///< Precio por noche
+    char* m_amenidades;         ///< Amenidades del alojamiento.
+    Linked_List<Reserva*> *m_reservas; ///< Lista de reservas de un alojamiento (si aplica).
 
     /**
      * @brief Copia una cadena de caracteres a memoria dinámica.
@@ -38,88 +39,69 @@ public:
      * @brief Constructor por defecto.
      * 
      * Inicializa los punteros a nullptr y valores numéricos a 0.
+     * @param id ID del alojamiento.
+     * @param nombre Nombre del alojamiento.
+     * @param codigo_anfitrion Código único del responsable del alojamiento.
+     * @param direccion Dirección física del alojamiento.
+     * @param departamento Departamento donde se encuentra el alojamiento.
+     * @param municipio Municipio donde se encuentra el alojamiento.
+     * @param tipo Tipo de alojamiento (1 = Casa, 2 = Apartamento).
+     * @param precio Precio por una noche en el alojamiento.
+     * @param amenidades Conjunto de ameneidades que tiene el alojamiento.
      */
-    Alojamiento();
 
+    Alojamiento(uint32_t id, const char* nombre, uint64_t codigo_anfitrion,
+                const char* direccion, const char* departamento,
+                const char* municipio, uint8_t tipo, float precio, const char* amenidades);
+
+    
+    
     /**
-     * @brief Establece el nombre del alojamiento.
+     * @brief Agrega una reserva activa al alojamiento
+     * @return ID del alojamiento.
+     */
+    Reserva *set_reserva(Reserva *reserva); 
+    
+    /**
+     * @brief Muestra las reservas activas del alojamiento.
      * 
-     * @param nombre Cadena con el nuevo nombre.
-     * @return true si se asignó correctamente, false si hubo error.
+     * Recorre la lista de reservas y muestra la información de cada una.
      */
-    bool set_nombre(const char* nombre);
+    void mostrar_reservas() const;
 
     /**
-     * @brief Establece el código del alojamiento.
-     * 
-     * @param codigo Cadena con el nuevo código.
-     * @return true si se asignó correctamente, false si hubo error.
+     * @breif Muestra las reservas activas del alojamiento en un rango de fechas.
+     * @brief desde Fecha de inicio.
+     * @brief hasta Fecha de fin.
      */
-    bool set_codigo(const char* codigo);
+    void mostrar_reservas(Fecha &desde, Fecha &hasta) const;
 
+    uint32_t get_id() const;
     /**
-     * @brief Establece el ID del responsable del alojamiento.
-     * 
-     * @param id Entero que representa la cédula del responsable.
+     * @brief Obtiene el codigo del anfitrion.
+     * @return El código del anfitrion.
      */
-    void set_responsable_id(uint32_t id);
-
+    uint64_t get_codigo_anfitrion() const;
     /**
-     * @brief Establece el departamento del alojamiento.
-     * 
-     * @param dpto Cadena con el nombre del departamento.
-     * @return true si se asignó correctamente, false si hubo error.
+     * @brief Obtiene el municipio del.
+     * @return Cadena con el nombre del municipio.
      */
-    bool set_departamento(const char* dpto);
-
+    char *get_municipio() const;
     /**
-     * @brief Establece el municipio del alojamiento.
-     * 
-     * @param municipio Cadena con el nombre del municipio.
-     * @return true si se asignó correctamente, false si hubo error.
+     * @brief Obtiene el departamento del alojamiento.
+     * @return Cadena con el nombre del departamento.
      */
-    bool set_municipio(const char* municipio);
-
+    char *get_departamento() const;
     /**
-     * @brief Establece el tipo de alojamiento.
-     * 
-     * @param tipo Valor numérico: 1 = Casa, 2 = Apartamento.
+     * @brief Obtiene el precio por noche del alojamiento.
+     * @return precio por noche del alojamiento.
      */
-    void set_tipo(uint8_t tipo);
-
+    float get_precio() const;
+    
     /**
-     * @brief Establece la dirección del alojamiento.
-     * 
-     * @param direccion Cadena con la dirección física.
-     * @return true si se asignó correctamente, false si hubo error.
+     * @brief Muestra la información del alojamiento.
      */
-    bool set_direccion(const char* direccion);
-
-    /**
-     * @brief Establece el precio por noche del alojamiento.
-     * 
-     * @param precio Numero de 16 bits con el precio en USD del apartamento
-     * @return true si se asignó correctamente, false si hubo error.
-     */
-
-    void set_precio(uint16_t precio);
-
-    /**
-     * @brief Establece la cantidad de ameneidades que tiene el alojamiento
-     * @param cant_ameneidades Dato del archivo de texto que indica cuantas ameneidades tiene el alojamiento
-     * @return true se pudo crear el arreglo de punteros para almacenar las ameneidades
-     * @return false no se pudo crear el arreglo de punteros para almacenar las ameneidades
-    */
-
-    bool set_ameneidades(uint8_t cant_ameneidades);
-
-    /**
-     * @brief Agrega una ameneidad siempre que sea posible. 
-     * @param ameneidad Puntero que almacena una referencia a la ameneidad a agregar
-     * @return true se pudo agregar una ameneidad
-     * @return false no se pudo crear una ameneidad
-    */
-    bool set_ameneidad(char *ameneidad);
+    void mostrar_alojamiento() const;
 
     /**
      * @brief Destructor.
@@ -127,7 +109,6 @@ public:
      * Libera toda la memoria dinámica utilizada.
      * 
      */
-
     ~Alojamiento();
 };
 

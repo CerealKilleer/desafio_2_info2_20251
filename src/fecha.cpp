@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cctype>
 #include <cstring>
+#include <iostream>
 
 /**
  * @brief Clase para manejar fechas con validación y operaciones básicas.
@@ -106,10 +107,13 @@ bool Fecha::cargar_desde_cadena(const char* cadena)
  * @brief Convierte la fecha a cadena con formato "dd/mm/aaaa".
  * 
  * @param destino Buffer donde se copiará la cadena (debe tener al menos 11 bytes).
+ * @return char* Puntero al buffer destino.
+ * 
  */
-void Fecha::a_cadena(char* destino) const 
+char *Fecha::a_cadena(char* destino) const 
 {
     std::sprintf(destino, "%02u/%02u/%04d", dia, mes, anio);
+    return destino;
 }
 
 /**
@@ -121,14 +125,22 @@ void Fecha::a_cadena(char* destino) const
  *              0 si son iguales,
  *              1 si esta fecha es mayor.
  */
-uint8_t Fecha::comparar(const Fecha& otra) const 
-{
-    if (anio != otra.anio) return anio < otra.anio ? -1 : 1;
-    if (mes != otra.mes) return mes < otra.mes ? -1 : 1;
-    if (dia != otra.dia) return dia < otra.dia ? -1 : 1;
-    return 0;
+
+int32_t Fecha::comparar(const Fecha& otra) const {
+    if (anio != otra.anio)
+        return anio - otra.anio;
+    if (mes != otra.mes)
+        return mes - otra.mes;
+    return dia - otra.dia;
 }
 
+/**
+ * @brief Sobrecarga de operadores para comparar fechas.
+ * 
+ * @param otra Fecha a comparar.
+ * @return true Si son iguales.
+ * @return false Si son diferentes.
+ */
 bool Fecha::operator==(const Fecha& otra) const 
 { 
     return comparar(otra) == 0; 
@@ -159,6 +171,11 @@ bool Fecha::operator>=(const Fecha& otra) const
     return comparar(otra) >= 0; 
 }
 
+void Fecha::mostrar_fecha(const Fecha& fecha) 
+{
+    char buffer[LONG_FECHA_CADENA + 1];
+    std::cout << "Fecha: " << fecha.a_cadena(buffer) << std::endl;
+}
 /**
  * @brief Suma un número dado de noches a la fecha actual, devolviendo una nueva fecha.
  * 
