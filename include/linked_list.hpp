@@ -2,7 +2,7 @@
 #define LINKED_LIST_HPP
 
 #include <iostream>
-
+#include <stdint.h>
 /**
  * @brief Nodo de la lista enlazada.
  * 
@@ -29,8 +29,8 @@ public:
 template <typename T>
 class Linked_List {
 private:
+    uint32_t size;
     Node<T>* head;  ///< Puntero al primer nodo.
-
 public:
     /**
      * @brief Constructor por defecto.
@@ -49,16 +49,10 @@ public:
     void insert_front(T value);
 
     /**
-     * @brief Inserta un nuevo nodo al final.
-     * @param value Dato a insertar.
-     */
-    void insert_back(T value);
-
-    /**
      * @brief Elimina el primer nodo que contiene el dato especificado.
      * @param value Dato a eliminar (comparación por puntero).
      */
-    void remove(T value);
+    bool remove(T value);
 
     /**
      * @brief Verifica si la lista está vacía.
@@ -85,6 +79,24 @@ public:
      * @return Puntero al siguiente nodo, o nullptr si no hay más.
      */
     Node<T>* get_next(Node<T>* node) const;
+
+    /**
+     * @brief Ordena la lista usando el algoritmo merge sort.
+     */
+    void sort();
+
+    /**
+     * @brief muestra el tamaño de la lista
+     * @return uint32_t tamaño de la lista
+     */
+    uint32_t get_size() const;
+
+    /**
+     * @brief Inserta un nuevo elemento en la lista de forma ordenada.
+     * @param nuevo_elemento Elemento a insertar.
+     * @param comparador Función de comparación para determinar el orden.
+     */
+    void insert_sorted(T nuevo_elemento, bool (*comparador)(T, T));
 };
 
 #include "linked_list.tpp"

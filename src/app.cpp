@@ -5,31 +5,36 @@
  * Este archivo contiene la implementación de la función principal de la aplicación
  */
 
-#include <iostream>
-#include <fstream>
-#include <cstring>
-#include <sstream>
-#include <string>
-#include <ctime>
-#include "huesped.hpp"
-#include "anfitrion.hpp"
-#include "unordered_map.hpp"
-#include "fecha.hpp"
 #include "app.hpp"
-#include "reserva.hpp"
-#include "linked_list.hpp"
 
-#define MAX_PASSWORD_LENGTH 20
-#define SUCCESS_LOG(fn, msg) std::cout << "[App/" << fn << "]: " << msg << std::endl
-#define ERROR_LOG(fn, msg) std::cerr << "[App/" << fn << "]: " << msg << std::endl
-#define CAMPOS_MAX_ALOJAMIENTO 9
-#define CAMPOS_MAX_RESERVA 9
-#define RESERVAS_SIZE(size) ((size * 1.5) + 1) // Redimensiona la tabla hash al 150% de su tamaño original
-#define HUESPED_FILE "huespedes.txt"
-#define ANFITRION_FILE "anfitriones.txt"
-#define ALOJAMIENTO_FILE "alojamientos.txt"
-#define RESERVAS_FILE "reservaciones.txt"
-#define ESTA_ACTIVA(fin, sistema) (fin > sistema) // Verifica si la reserva está activa
+/**
+ * @brief Crea un archivo de histórico de reservas a partir de las reservas activas del sistema.
+ * 
+ * @param reservas Mapa a las reservas.
+ * @param num_reservas Número de reservas en el arreglo.
+ * @param historico_file Ruta del archivo donde se guardará el histórico.
+ */
+static bool crear_historico_reservas(Unordered_Map<uint32_t, Reserva>* Reservas, const char* filename, Anfitrion* anfitrion, Fecha *fecha_sistema);
+
+/**
+ * @brief Busca un huésped en el archivo dado a partir de su documento y contraseña.
+ * 
+ * @param huesped_file Ruta al archivo que contiene los datos de los huéspedes.
+ * @param documento Documento de identidad del huésped a buscar.
+ * @param password Contraseña del huésped (para validación).
+ * @return Puntero al huésped si se encuentra y valida, nullptr en caso contrario.
+ */
+static Huesped* buscar_huesped(const char* huesped_file, uint64_t documento, char* password);
+
+/**
+ * @brief Busca un anfitrión en el archivo dado a partir de su documento y contraseña.
+ * 
+ * @param anfitrion_file Ruta al archivo que contiene los datos de los anfitriones.
+ * @param documento Documento de identidad del anfitrión a buscar.
+ * @param password Contraseña del anfitrión (para validación).
+ * @return Puntero al anfitrión si se encuentra y valida, nullptr en caso contrario.
+ */
+static Anfitrion* buscar_anfitrion(const char* anfitrion_file, uint64_t documento, char* password);
 
 /**
  * @brief Obtiene la fecha actual del sistema en formato "dd/mm/aaaa".
@@ -69,7 +74,7 @@ static uint32_t dividir_linea(const std::string &linea, std::string *campos, uin
 
 static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename, 
                                         Unordered_Map<uint32_t, Alojamiento>**alojamientos,
-                                        Huesped **huesped,
+                                        Huesped *huesped,
                                         size_t &num_reservas, Fecha *fecha_actual);
 
 
@@ -238,7 +243,7 @@ static Unordered_Map<uint32_t, Alojamiento>* leer_alojamientos(const char* filen
 
 static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename, 
                                         Unordered_Map<uint32_t, Alojamiento>**alojamientos,
-                                        Huesped **huesped,
+                                        Huesped *huesped,
                                         size_t &num_reservas, Fecha *fecha_actual)
 {
     std::ifstream archivo(filename);
@@ -310,14 +315,15 @@ static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename,
             if (alojamiento != nullptr)
                 alojamiento->set_reserva(reserva);
 
-            if (*huesped != nullptr) {
-                if (reserva->get_documento_huesped() == (*huesped)->get_documento()) {
-                    (*huesped)->set_reserva(reserva);
+            if (huesped != nullptr) {
+                if (reserva->get_documento_huesped() == (huesped)->get_documento()) {
+                    (huesped)->set_reserva(reserva);
                 }
             }
 
         } catch (const std::exception& e) {
             std::cerr << "Error al convertir campos en línea: " << linea << std::endl;
+            continue;
         }
     }
 
@@ -418,6 +424,10 @@ static bool iniciar_sesion_huesped(Huesped **huesped_user)
     return true;
 }
 
+/**
+ * @brief Inicia sesión para un anfitrión.
+ * @param anfitrion_user Referencia a un puntero de tipo Anfitrion.
+ */
 static bool iniciar_sesion_anfitrion(Anfitrion **anfitrion_user)
 {
     uint64_t documento;
@@ -437,6 +447,30 @@ static bool iniciar_sesion_anfitrion(Anfitrion **anfitrion_user)
     return true;
 }
 
+static void escribir_cancelaciones(Reserva *reserva, const char *filename)
+{
+    std::ofstream archivo(filename, std::ios::app);
+    if (!archivo.is_open()) {
+        std::cerr << "Error al abrir el archivo para escribir cancelaciones." << std::endl;
+        return;
+    }
+
+    char buffer[LONG_FECHA_CADENA + 1] = {0};
+    reserva->get_fecha_entrada()->a_cadena(buffer);
+    archivo << buffer << ";";
+    archivo << reserva->get_duracion() << ";";
+    archivo << reserva->get_codigo_reserva() << ";";
+    archivo << reserva->get_codigo_alojamiento() << ";";
+    archivo << reserva->get_documento_huesped() << ";";
+    archivo << reserva->get_metodo_pago() << ";";
+
+    reserva->get_fecha_pago()->a_cadena(buffer);
+    archivo << buffer << ";";
+    archivo << reserva->get_monto() << ";";
+    archivo << (reserva->get_anotaciones() ? reserva->get_anotaciones() : "") << "\n";
+
+    archivo.close();
+}
 /**
  * @brief Callback para escribir una reserva en un archivo.
  * 
@@ -493,7 +527,7 @@ static void escribir_reservas(Unordered_Map<uint32_t, Reserva>* reservas, const 
  * Esta función permite al anfitrión realizar operaciones como iniciar sesión,
  * ver reservas, etc.
  */
-void zona_anfitrion(void)
+void zona_anfitrion(Fecha *fecha_sistema)
 {
     Anfitrion *anfitrion_user = nullptr;
     if (!iniciar_sesion_anfitrion(&anfitrion_user)) {
@@ -519,9 +553,10 @@ void zona_anfitrion(void)
     do {
         std::cout << "Bienvenido Anfitrion" << std::endl;
         std::cout << "Bienvenido: " << (anfitrion_user)->get_documento() << std::endl;
-        std::cout << "Seleccione:\n1. Consultar reservaciones\n2. Anular reservacion\n3. Salir" << std::endl;
+        std::cout << "Seleccione:\n1. Consultar reservaciones\n2. Anular reservacion\n3. Crear historico\n4. Cambiar fecha del sistema\n5. Guardar y salir" << std::endl;
         std::cin >> opc;
         opc = opc - '0'; // Convertir al numerito :)
+        
         switch (opc) {
             case 1:
                 std::cout << "Consulta por fecha\nDesde: (dd/mm/aaaa): ";
@@ -551,22 +586,35 @@ void zona_anfitrion(void)
                 }
 
                 if (anfitrion_user->eliminar_reserva(reserva)) {
+                    escribir_cancelaciones(reserva, CANCELACIONES_FILE);
                     delete Reservas->erase(codigo_reserva);
                     update_reservas = true;
-                    std::cout << "Reserva eliminada con éxito." << std::endl;
-                } else {
-                    std::cerr << "No se pudo eliminar la reserva." << std::endl;
                 }
 
                 break;
             case 3:
+                std::cout << "Crear histórico de reservas" << std::endl;
+                update_reservas = crear_historico_reservas(Reservas, HISTORICO_FILE, anfitrion_user, fecha_actual);
+                break;
+            case 4:
+                std::cout << "Cambiar fecha del sistema" << std::endl;
+                std::cout << "Ingrese la nueva fecha (dd/mm/aaaa): ";
+                char nueva_fecha[LONG_FECHA_CADENA + 1];
+                std::cin >> nueva_fecha;
+                if (fecha_actual->cargar_desde_cadena(nueva_fecha)) {
+                    std::cout << "Fecha del sistema actualizada a: " << nueva_fecha << std::endl;
+                } else {
+                    std::cerr << "Error al cargar la fecha." << std::endl;
+                }
+                break;
+            case 5:
                 std::cout << "Saliendo..." << std::endl;
                 break;
             default:
                 std::cout << "Opción no válida." << std::endl;
                 break;
         }
-    } while (opc != 3);
+    } while (opc != 4);
 
 
     if (Alojamientos != nullptr) {
@@ -591,6 +639,93 @@ void zona_anfitrion(void)
 }
 
 /**
+ * @brief Compara dos fechas.
+ * @param reserva_1 Reserva inicial.
+ * @param reserva_2 Reserva final.
+ * @return true si la fecha de salida de la reserva 1 es menor que la de la reserva 2.
+ */
+static bool comparar_fecha_reservas(Reserva *reserva_1, Reserva *reserva_2)
+{
+    return (*reserva_1->get_fecha_salida()) < (*reserva_2->get_fecha_salida());
+}
+/**
+ * @brief Agrega una reserva al histórico de reservas y la elimina de las reservas del anfitrión.
+ * @param codigo_reserva Código de la reserva.
+ * @param reserva Puntero a la reserva a agregar al histórico.
+ * @param archivo Puntero al archivo donde se escribirá el histórico.
+ * @param fecha Fecha de corte para el histórico.
+ * @param anfitrion Puntero al anfitrión que está creando el histórico.
+ * @param params Parámetros adicionales para el callback (archivo, fecha, anfitrion, historico)
+ */
+static void agregar_historico_reservas(uint32_t codigo_reserva, Reserva* reserva, void* params)
+{
+    callback_param_historico *param = reinterpret_cast<callback_param_historico*>(params);
+    if (reserva == nullptr)
+        return;
+
+    if (*(reserva->get_fecha_salida()) >= *(param->fecha))
+        return;
+    
+    param->anfitrion->eliminar_reserva(reserva);
+    param->historico->insert_sorted(reserva, comparar_fecha_reservas);
+}
+
+/**
+ * @brief Crea un archivo histórico de reservas.
+ * 
+ * @param Reservas Mapa hash que contiene las reservas a escribir.
+ * @param filename Nombre del archivo donde se guardarán las reservas.
+ * @param anfitrion Puntero al anfitrión que está creando el histórico.
+ * @param fecha_sistema Fecha del sistema actual.
+ */
+static bool crear_historico_reservas(Unordered_Map<uint32_t, Reserva>* Reservas, const char* filename, Anfitrion* anfitrion, Fecha *fecha_sistema)
+{
+    std::ofstream archivo(filename, std::ios::app);
+    struct callback_param_historico params = {&archivo, fecha_sistema, anfitrion};
+    params.historico = new Linked_List<Reserva*>();
+
+    if (params.historico == nullptr) {
+        std::cerr << "Error al crear la lista de histórico." << std::endl;
+        return false;
+    }
+
+    if (!archivo.is_open()) {
+        std::cerr << "Error al abrir el archivo para escribir el historico." << std::endl;
+        return false;
+    }
+
+    Reservas->for_each(agregar_historico_reservas, &params);
+    
+    if (params.historico->get_size() == 0) {
+        delete params.historico;
+        return false;
+    }
+    std::cout << "Histórico de reservas creado con éxito." << std::endl;
+    Node<Reserva*> *current = params.historico->get_head();
+    char buffer[LONG_FECHA_CADENA + 1] = {0};
+
+    while (current != nullptr) {
+        current->data->get_fecha_entrada()->a_cadena(buffer);
+        archivo << buffer << ";";
+        archivo << current->data->get_duracion() << ";";
+        archivo << current->data->get_codigo_reserva() << ";";
+        archivo << current->data->get_codigo_alojamiento() << ";";
+        archivo << current->data->get_documento_huesped() << ";";
+        archivo << current->data->get_metodo_pago() << ";";
+        archivo << current->data->get_fecha_pago()->a_cadena(buffer) << ";";
+        archivo << current->data->get_monto() << ";";
+        archivo << (current->data->get_anotaciones() ? current->data->get_anotaciones() : "") << "\n";
+        delete Reservas->erase(current->data->get_codigo_reserva());
+        current = current->next;
+    }
+    
+    delete params.historico;
+    params.historico = nullptr;
+    archivo.close();
+    
+    return true;
+}
+/**
  * @brief Zona de operaciones para el huésped.
  * 
  * Esta función permite al huésped realizar operaciones como iniciar sesión,
@@ -608,13 +743,13 @@ void zona_huesped(Fecha *fecha_sistema)
     Unordered_Map<uint32_t, Alojamiento>* Alojamientos = nullptr;
     size_t num_reservas = 0;
     bool update_reservas = false;
-    Reservas = leer_reservas(RESERVAS_FILE, &Alojamientos, &huesped_user, num_reservas, fecha_sistema);
+    Reservas = leer_reservas(RESERVAS_FILE, &Alojamientos, huesped_user, num_reservas, fecha_sistema);
     Reserva *reserva = nullptr;
     uint8_t opc = 0;
     do {
         std::cout << "Bienvenido Huesped" << std::endl;
         std::cout << "Bienvenido: " << (huesped_user)->get_documento() << std::endl;
-        std::cout << "Seleccione:\n1. Anular reservaciones\n2. Hacer reservaciones\n3. Salir" << std::endl;
+        std::cout << "Seleccione:\n1. Anular reservaciones\n2. Hacer reservaciones\n3.Guardar y Salir" << std::endl;
         std::cin >> opc;
         opc = opc - '0'; // Convertir al numerito :)
         switch (opc) {
@@ -629,12 +764,13 @@ void zona_huesped(Fecha *fecha_sistema)
                     break;
                 }
                 if (huesped_user->eliminar_reserva(reserva)) {
+                    escribir_cancelaciones(reserva, CANCELACIONES_FILE);
                     delete Reservas->erase(codigo_reserva);
                     update_reservas = true;
                 }
                 break;
             case 2:
-                std::cout << "Anular reservación" << std::endl;
+                std::cout << "Crear reservación" << std::endl;
                 break;
             case 3:
                 std::cout << "Saliendo..." << std::endl;
@@ -643,7 +779,7 @@ void zona_huesped(Fecha *fecha_sistema)
                 std::cout << "Opción no válida." << std::endl;
                 break;
         }
-    } while (opc != 3);
+    } while (opc != 4);
     
     if (Alojamientos != nullptr) {
         Alojamientos->clear_values();
@@ -666,8 +802,14 @@ void zona_huesped(Fecha *fecha_sistema)
 void app_main() 
 {
     Fecha *fecha_sistema = new Fecha();
-    fecha_sistema->cargar_desde_cadena("18/05/2025");
-    zona_huesped(fecha_sistema);
+    char fecha[LONG_FECHA_CADENA + 1] = {0};
+    obtener_fecha_actual(fecha, LONG_FECHA_CADENA + 1);
+    std::cout << "Fecha del sistema: " << fecha << std::endl;
+    fecha_sistema->cargar_desde_cadena(fecha);
+
+    zona_anfitrion(fecha_sistema);
+
+    //zona_huesped(fecha_sistema);
     /*
     uint8_t opc = 0;
     std::cout << "Bienvenido a la aplicación de reservas." << std::endl;
@@ -691,5 +833,5 @@ void app_main()
             std::cout << "Opción no válida." << std::endl;
             return;
     }*/
-    return;
+    delete fecha_sistema;
 }

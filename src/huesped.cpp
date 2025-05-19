@@ -129,19 +129,13 @@ bool Huesped::eliminar_reserva(Reserva* reserva)
         LOG_ERROR("eliminar_reserva", "La reserva es nula");
         return false;
     }
-    Node<Reserva*>* current = m_reservas->get_head();
-    while (current != nullptr) {
-        cnt++;
-        Reserva* r = current->data;
-        if (r->get_codigo_reserva() == reserva->get_codigo_reserva()) {
-            m_reservas->remove(r);
-            LOG_SUCCESS("eliminar_reserva", "Reserva eliminada con éxito se requirieron: " + std::to_string(cnt) + " ciclos");
-            return true;
-        }
-        current = m_reservas->get_next(current);
+    if (m_reservas->remove(reserva)) {
+        LOG_SUCCESS("eliminar_reserva", "Reserva eliminada con éxito");
+        return true;
+    } else {
+        LOG_ERROR("eliminar_reserva", "No se pudo eliminar la reserva");
+        return false;
     }
-    LOG_SUCCESS("eliminar_reserva", "Reserva no encontrada, se requirieron: " + std::to_string(cnt) + " ciclos");
-    return true;
 }
 
 
