@@ -2,7 +2,8 @@
 #define __HUESPED_HPP__
 #include <stdint.h>
 #include <string>
-
+#include "linked_list.hpp"
+#include "reserva.hpp"
 /**
  * @class Huesped
  * @brief Clase que representa a un huesped con información personal y de acceso.
@@ -67,6 +68,22 @@ class Huesped
         size_t get_obj_size() const;
 
         /**
+         * @brief Establece una reserva para el huesped.
+         * 
+         * @param reserva Reserva a establecer.
+         * @return Puntero a la reserva establecida.
+         */
+        bool eliminar_reserva(Reserva* reserva);
+
+        /**
+         * @brief Agrega una reserva activa.
+         * 
+         * @param reserva Reserva a agregar.
+         * @return Puntero a la reserva agregada.
+         */
+
+        void set_reserva(Reserva* reserva);
+        /**
          * @brief Destructor de la clase Huesped.
          * 
          * Libera los recursos ocupados por el objeto Huesped.
@@ -78,6 +95,7 @@ class Huesped
         char * m_password;         ///< Contraseña del huesped.
         uint16_t m_antiguedad;     ///< Antigüedad del huesped en meses.
         float m_puntuacion;        ///< Puntuación del usuario.
+        Linked_List<Reserva*> *m_reservas; ///< Lista de reservas del huesped.
 };
 
 #endif

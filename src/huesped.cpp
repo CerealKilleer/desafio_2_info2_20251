@@ -12,6 +12,9 @@
  #include <string>
  #include <cstring>
  #include <iostream>
+
+ #define LOG_SUCCESS(fn, msg) std::cout << "[Huesped/" << fn << "]: " << msg << std::endl
+ #define LOG_ERROR(fn, msg) std::cerr << "[Huesped/" << fn << "]: " << msg << std::endl
  /**
   * @brief Constructor de la clase Huesped.
   * 
@@ -35,7 +38,8 @@
      : m_documento(documento),  
        m_antiguedad(antiguedad), 
        m_puntuacion(puntuacion),
-       m_password(nullptr)
+       m_password(nullptr),
+       m_reservas(nullptr)
  {
         if (password == nullptr) {
             LOG_ERROR("Huesped", "La contraseña es nula");
@@ -50,6 +54,7 @@
         }
         strncpy(m_password, password, len);
         m_password[len - 1] = '\0';
+        m_reservas = new Linked_List<Reserva*>();
  };
  
  /**
@@ -110,15 +115,61 @@
     return total_size;
  }
 
+
+/**
+ * @brief Muestra los alojamientos del anfitrion.
+ * 
+ * Elimina una reserva que esté asociada a un alojamiento del anfitrion.
+ */
+
+bool Huesped::eliminar_reserva(Reserva* reserva)
+{
+    size_t cnt = 0;
+    if (reserva == nullptr) {
+        LOG_ERROR("eliminar_reserva", "La reserva es nula");
+        return false;
+    }
+    Node<Reserva*>* current = m_reservas->get_head();
+    while (current != nullptr) {
+        cnt++;
+        Reserva* r = current->data;
+        if (r->get_codigo_reserva() == reserva->get_codigo_reserva()) {
+            m_reservas->remove(r);
+            LOG_SUCCESS("eliminar_reserva", "Reserva eliminada con éxito se requirieron: " + std::to_string(cnt) + " ciclos");
+            return true;
+        }
+        current = m_reservas->get_next(current);
+    }
+    LOG_SUCCESS("eliminar_reserva", "Reserva no encontrada, se requirieron: " + std::to_string(cnt) + " ciclos");
+    return true;
+}
+
+
+/**
+ * @brief Establece una reserva para el huesped.
+ * 
+ * @param reserva Reserva a establecer.
+ * @return Puntero a la reserva establecida.
+ */
+void Huesped::set_reserva(Reserva* reserva) 
+{
+    if (reserva == nullptr) {
+        LOG_ERROR("set_reserva", "La reserva es nula");
+        return;
+    }
+    m_reservas->insert_front(reserva);
+}
+
+
 /**
 * @brief Destructor de la clase Huesped.
 * 
 * Libera los recursos ocupados por el objeto Huesped.
 */
-
 Huesped::~Huesped() 
 {
     delete[] m_password;
+    delete m_reservas;
     std::cout << "Huesped: " << m_documento << " destruido" << std::endl;
 }
  

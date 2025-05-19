@@ -30,6 +30,7 @@
  * @param msg Mensaje de error a imprimir.
  */
 #define LOG_ERROR(fn, msg) std::cerr << "[Anfitrion/" << fn << "]: " << msg << std::endl
+#define LOG_SUCCESS(fn, msg) std::cout << "[Anfitrion/" << fn << "]: " << msg << std::endl
 
  Anfitrion::Anfitrion(uint64_t documento, char *password, uint16_t antiguedad, float puntuacion) 
      : m_documento(documento),  
@@ -130,6 +131,48 @@ Alojamiento* Anfitrion::set_alojamiento(Alojamiento* alojamiento)
     return alojamiento;
 }
 
+/**
+ * @brief Muestra los alojamientos del anfitrion.
+ * 
+ * Elimina una reserva que esté asociada a un alojamiento del anfitrion.
+ */
+
+bool Anfitrion::eliminar_reserva(Reserva* reserva)
+{
+    size_t cnt = 0;
+    if (reserva == nullptr) {
+        LOG_ERROR("eliminar_reserva", "La reserva es nula");
+        return false;
+    }
+    uint32_t codigo_alojamiento = reserva->get_codigo_alojamiento();
+    Node<Alojamiento*>* current = m_alojamientos->get_head();
+
+    while (current != nullptr) {
+        Alojamiento* alojamiento = current->data;
+        if (alojamiento->get_id() == codigo_alojamiento) {
+            if (alojamiento->eliminar_reserva(reserva->get_codigo_reserva())) {
+                LOG_SUCCESS("eliminar_reserva", "Reserva eliminada con éxito");
+            } else {
+                LOG_ERROR("eliminar_reserva", "No se pudo eliminar la reserva");
+            }
+            reserva = nullptr;
+            break;
+        }
+        current = m_alojamientos->get_next(current);
+        cnt++;
+    }
+
+    LOG_SUCCESS("eliminar_reserva", "La operación tomó: " + std::to_string(cnt) + " ciclos");
+    return true;
+}
+/**
+ * @brief Muestra los alojamientos del anfitrion activos en un intervalo de fechas.
+ * 
+ * Recorre la lista de alojamientos y muestra la información de cada uno.
+ * 
+ * @param desde Fecha de inicio para filtrar reservas.
+ * @param hasta Fecha de fin para filtrar reservas.
+ */
 void Anfitrion::mostrar_alojamientos(Fecha &desde, Fecha &hasta) const
 {
     if (m_alojamientos == nullptr) {

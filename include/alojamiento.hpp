@@ -102,7 +102,13 @@ public:
      * @brief Muestra la información del alojamiento.
      */
     void mostrar_alojamiento() const;
-
+    
+    /**
+     * @brief Elimina una reserva del alojamiento.
+     * @param codigo_reserva Código de la reserva a eliminar.
+     * @return true si la reserva fue eliminada, false en caso contrario.
+     */
+    bool eliminar_reserva(uint32_t codigo_reserva);
     /**
      * @brief Destructor.
      * 

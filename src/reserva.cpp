@@ -70,6 +70,7 @@ uint32_t Reserva::get_codigo_reserva() const
 
 void Reserva::mostrar() const
 {
+    std::cout << "------------*------------" << std::endl;
     char fecha[LONG_FECHA_CADENA];
     std::cout << "Reserva: " << m_codigo_reserva << std::endl;
     std::cout << "Código de alojamiento: " << m_codigo_alojamiento << std::endl;
@@ -82,6 +83,7 @@ void Reserva::mostrar() const
     std::cout << "Fecha de pago: " << m_fecha_pago->a_cadena(fecha) << std::endl;
     std::cout << "Monto pagado: " << m_monto << std::endl;
     std::cout << "Anotaciones: " << (m_anotaciones ? m_anotaciones : "(Ninguna)") << std::endl;
+    std::cout << "------------*------------" << std::endl;
 }
 
 /**

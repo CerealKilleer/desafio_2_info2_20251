@@ -141,6 +141,35 @@ void Alojamiento::mostrar_alojamiento() const
    std::cout << "------------*------------" << std::endl;
 }
 
+/**
+ * @brief Obtiene el ID del alojamiento.
+ * 
+ * @return ID del alojamiento.
+ */
+uint32_t Alojamiento::get_id() const 
+{
+    return m_id;
+}
+
+bool Alojamiento::eliminar_reserva(uint32_t codigo_reserva) 
+{
+    size_t cnt = 0;
+    Node<Reserva*>* current = m_reservas->get_head();
+    while (current != nullptr) {
+        cnt++;
+        Reserva* reserva = current->data;
+        if (reserva->get_codigo_reserva() == codigo_reserva) {
+            m_reservas->remove(reserva);
+            LOG_SUCCESS("eliminar_reserva", "La operación tomó: " + std::to_string(cnt) + " ciclos");
+            return true;
+        }
+        current = m_reservas->get_next(current);
+    }
+    LOG_SUCCESS("eliminar_reserva", "La operación tomó: " + std::to_string(cnt) + " ciclos");
+    return false;
+}
+
+
 // Destructor
 Alojamiento::~Alojamiento() 
 {

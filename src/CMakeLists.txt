@@ -28,6 +28,11 @@ target_link_libraries(lib_anfitrion PRIVATE
                         lib_alojamiento
                         lib_reserva)
 
+target_link_libraries(lib_anfitrion PRIVATE
+                        lib_alojamiento
+                        lib_reserva
+                        lib_fecha)
+
 target_link_libraries(lib_app PRIVATE
                         lib_alojamiento
                         lib_huesped

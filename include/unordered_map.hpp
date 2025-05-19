@@ -98,6 +98,15 @@ class Unordered_Map {
          * 
          */
         void clear_values();
+
+        /**
+         * @brief Recorre la tabla hash y aplica una función a cada par clave-valor.
+         * 
+         * @param callback Función que se aplicará a cada par clave-valor.
+         * @param data Datos adicionales que se pasarán a la función callback.
+         * @return El número de elementos procesados.
+         */
+        size_t for_each(void (*callback)(Key, Value*, void*), void *data);
 };
 
 #include "unordered_map.tpp"

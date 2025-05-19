@@ -83,9 +83,19 @@ class Anfitrion
         void mostrar_alojamientos(Fecha &desde, Fecha &hasta) const;
 
         /**
+         * @brief Elimina una reserva que esté asociada a un alojamiento del anfitrion.
+         * 
+         * Recorre la lista de alojamientos y elimina la reserva asociada.
+         * 
+         * @param reserva Puntero a la reserva a eliminar.
+         */
+        bool eliminar_reserva(Reserva* reserva);
+        /**
          * @brief Destructor de la clase Anfitrion.
          * 
          * Libera los recursos ocupados por el objeto Anfitrion.
+         * @param reserva Puntero a la reserva a eliminar.
+         * @return true si la reserva fue eliminada, false en caso contrario.
          */
         ~Anfitrion();
 

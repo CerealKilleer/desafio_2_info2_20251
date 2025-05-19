@@ -196,4 +196,18 @@ size_t Unordered_Map<Key, Value>::info_map() const
     return total;
 }
 
+template <typename Key, typename Value>
+size_t Unordered_Map<Key, Value>::for_each(void (*callback)(Key, Value*, void*), void *data) 
+{
+    size_t iters = 0;
+    for (size_t i = 0; i < m_size; ++i) {
+        key_value_pair* current = m_table[i];
+        while (current != nullptr) {
+            callback(current->key, current->value, data);
+            current = current->next;
+            iters++;
+        }
+    }
+    return iters;
+}
 #endif
