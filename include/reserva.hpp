@@ -39,7 +39,7 @@ public:
             uint32_t cod_reserva, uint32_t cod_alojamiento,
             uint64_t doc_huesped, char metodo_pago,
             Fecha *fecha_pago, float monto,
-            const char* notas, bool activa);
+            const char* notas);
 
    
     /**

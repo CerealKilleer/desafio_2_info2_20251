@@ -23,13 +23,12 @@ Reserva::Reserva(Fecha *fecha_entrada, Fecha *fecha_salida, uint16_t duracion,
                  uint32_t cod_reserva, uint32_t cod_alojamiento,
                  uint64_t doc_huesped, char metodo_pago,
                  Fecha *fecha_pago, float monto,
-                 const char* notas, bool activa)
+                 const char* notas)
 
     : m_duracion(duracion), m_codigo_reserva(cod_reserva),
       m_codigo_alojamiento(cod_alojamiento), m_documento_huesped(doc_huesped),
       m_metodo_pago(metodo_pago), m_monto(monto), m_fecha_entrada(fecha_entrada), 
-      m_fecha_salida(fecha_salida), m_fecha_pago(fecha_pago), m_anotaciones(nullptr), 
-      m_activa(activa)
+      m_fecha_salida(fecha_salida), m_fecha_pago(fecha_pago), m_anotaciones(nullptr)
 {
     if (notas != nullptr) {
         size_t len = strlen(notas) + 1;
@@ -138,14 +137,6 @@ float Reserva::get_monto() const
 const char* Reserva::get_anotaciones() const 
 {
     return m_anotaciones;
-}
-
-/**
- * @brief Dice si la reserva está activa o no
- */
-bool Reserva::get_activa() const 
-{
-    return m_activa;
 }
 
 /**

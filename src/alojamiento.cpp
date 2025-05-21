@@ -43,7 +43,16 @@ Alojamiento::Alojamiento(uint32_t id, const char* nombre, uint64_t codigo_anfitr
     m_reservas = new Linked_List<Reserva*>();
 }
 
+/**
+ * @brief Retorna el codigo del anfitrion.
+ * 
+ * @return Código del anfitrion.
+ */
 
+uint64_t Alojamiento::get_codigo_anfitrion() const 
+{
+    return m_codigo_anfitrion;
+}
 /**
  * @brief Copia los datos de una cadena a otra.
  * @param data Cadena de caracteres a copiar.
@@ -97,6 +106,35 @@ void Alojamiento::mostrar_reservas() const
     }
 }
 
+/**
+ * @brief Muestra las reservas activas del alojamiento en un rango de fechas y para un departamento en especifico.
+ * 
+ * Recorre la lista de reservas y muestra la información de cada una
+ * que esté dentro del rango de fechas especificado.
+ * 
+ * @param desde Fecha de inicio.
+ * @param hasta Fecha de fin.
+ * @param dpto Municipio a filtrar.
+ */
+
+bool Alojamiento::es_candidato_reserva(const Fecha &desde, const Fecha &hasta, const std::string &mpo) const
+{
+    Node<Reserva*>* current = m_reservas->get_head();
+    while (current != nullptr) {
+        Reserva* reserva = current->data;
+        
+        if (*(reserva->get_fecha_entrada()) < hasta && *(reserva->get_fecha_salida()) > desde)
+            return false;
+        
+        current = m_reservas->get_next(current);
+    }
+
+    if (strcmp(m_municipio, mpo.c_str()) == 0)
+        return true;
+    
+    return false;
+}
+
 /** 
  * @brief Muestra las reservas activas del alojamiento en un rango de fechas.
  * @param desde Fecha de inicio.
@@ -114,7 +152,7 @@ void Alojamiento::mostrar_reservas(Fecha &desde, Fecha &hasta) const
     while (current != nullptr) {
         Reserva* reserva = current->data;
         
-        if (*(reserva->get_fecha_entrada()) <= hasta && *(reserva->get_fecha_salida()) >= desde) {
+        if (*(reserva->get_fecha_entrada()) < hasta && *(reserva->get_fecha_salida()) > desde) {
             std::cout << "Alojamiento: " << m_nombre << std::endl;
             reserva->mostrar();
         }
@@ -150,6 +188,15 @@ uint32_t Alojamiento::get_id() const
 {
     return m_id;
 }
+
+float Alojamiento::get_precio() const 
+{
+    return m_precio;
+}
+/**
+ * @brief Elimina una reserva del alojamiento.
+ * @return true si se eliminó correctamente, false en caso contrario. 
+ */
 
 bool Alojamiento::eliminar_reserva(uint32_t codigo_reserva) 
 {

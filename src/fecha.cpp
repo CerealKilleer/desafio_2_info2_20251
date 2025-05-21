@@ -183,7 +183,7 @@ void Fecha::mostrar_fecha(const Fecha& fecha)
  * @return Fecha* Puntero a una nueva instancia de Fecha con la fecha resultante.
  *               El usuario es responsable de liberar la memoria.
  */
-Fecha* Fecha::sumar_noches(uint16_t noches) const 
+Fecha* Fecha::sumar_noches(uint16_t noches, size_t &cnt) const 
 {
     uint8_t d = dia, m = mes;
     int16_t a = anio;
@@ -203,9 +203,71 @@ Fecha* Fecha::sumar_noches(uint16_t noches) const
                 ++a;
             }
         }
+        cnt++;
     }
 
     Fecha* nueva = new Fecha();
     nueva->set_fecha(d, m, a);
     return nueva;
+}
+
+/**
+ * @brief Agrega años a la fecha actual y entrega una nueva fecha
+ * 
+ * @param anios Número de años a sumar
+ * @return Fecha* Puntero a una nueva instancia de Fecha con la fecha resultante.
+ *               El usuario es responsable de liberar la memoria.
+ */
+Fecha* Fecha::agregar_anios(uint8_t anios) const 
+{
+    Fecha *nueva_fecha = new Fecha(dia, mes, anio + anios);
+    return nueva_fecha;
+}
+
+/**
+ * @brief Obtener el tamaño en memoria de un objeto
+ * @return el tamaño en bytes del objeto
+ */
+size_t Fecha::get_size()
+{
+    return sizeof(*this);
+}
+
+/**
+ * @brief Muestra la fecha en un formato legible.
+ */
+
+void Fecha::formato_legible() const {
+    static const char* NOMBRES_DIA[] = {
+    "domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"
+    };
+
+    static const char* NOMBRES_MES[] = {
+        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+    };
+
+    uint8_t dia_semana = this->dia_semana();
+    std::cout << NOMBRES_DIA[dia_semana] << ", " << (int)dia << " de "
+              << NOMBRES_MES[mes - 1] << " del " << anio << std::endl;
+
+}
+/**
+ * @brief dia de la semana con formula de Zeller
+ */
+uint8_t Fecha::dia_semana() const {
+    int d = dia;
+    int m = mes;
+    int y = anio;
+
+    if (m < 3) {
+        m += 12;
+        y -= 1;
+    }
+
+    int k = y % 100;
+    int j = y / 100;
+
+    int h = (d + 13*(m + 1)/5 + k + k/4 + j/4 + 5*j) % 7;
+    return (h + 6) % 7;
 }

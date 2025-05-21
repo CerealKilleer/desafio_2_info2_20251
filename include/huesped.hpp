@@ -23,10 +23,11 @@ class Huesped
          * 
          * @param documento Documento del huesped (ID o similar).
          * @param password Contraseña del huesped.
+         * @param nombre Nombre del huesped.
          * @param antiguedad Antigüedad del huesped en meses.
          * @param puntuacion Puntuación del huesped, por ejemplo, en un sistema de calificación.
          */
-        Huesped(uint64_t documento, char *password, uint8_t antiguedad, float puntuacion);
+        Huesped(uint64_t documento, const char *password, const char *nombre, uint8_t antiguedad, float puntuacion);
         /**
          * @brief Obtiene el documento del huesped.
          * 
@@ -83,6 +84,22 @@ class Huesped
          */
 
         void set_reserva(Reserva* reserva);
+
+        /**
+         * @brief Verifica si el huesped tiene reservas en un rango de fechas.
+         * 
+         * @param fecha_inicio Fecha de inicio del rango.
+         * @param fecha_fin Fecha de fin del rango.
+         * @return true si hay reservas en el rango, false en caso contrario.
+         */
+
+        /**
+         * @brief Muestra la información de una reserva.
+         * @param reserva Reserva a mostrar.
+         */
+        void mostrar_reserva_huesped(Reserva *reserva);
+
+        bool tengo_reservas(Fecha *fecha_inicio, Fecha *fecha_fin);
         /**
          * @brief Destructor de la clase Huesped.
          * 
@@ -93,6 +110,7 @@ class Huesped
     private:
         uint64_t m_documento;      ///< Documento de identificación del huesped.
         char * m_password;         ///< Contraseña del huesped.
+        char * m_nombre;           ///< Nombre del huesped.
         uint16_t m_antiguedad;     ///< Antigüedad del huesped en meses.
         float m_puntuacion;        ///< Puntuación del usuario.
         Linked_List<Reserva*> *m_reservas; ///< Lista de reservas del huesped.

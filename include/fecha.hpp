@@ -2,6 +2,8 @@
 #define FECHA_HPP
 
 #include <stdint.h>
+#include <cstddef>
+
 
 #define LONG_FECHA_CADENA 10
 #define CANT_MESES 12
@@ -47,6 +49,12 @@ private:
      * @return -1 si esta < otra, 0 si son iguales, 1 si esta > otra.
      */
     int32_t comparar(const Fecha& otra) const;
+
+    /**
+     * @brief Obtiene el día de la semana de la fecha.
+     * @return Día de la semana (0=Domingo, 1=Lunes, ..., 6=Sábado).
+     */
+    uint8_t dia_semana() const;
 
 public:
     /**
@@ -110,7 +118,7 @@ public:
      * @param noches Número de noches (días) a sumar.
      * @return Nueva fecha resultante.
      */
-    Fecha *sumar_noches(uint16_t noches) const;
+    Fecha *sumar_noches(uint16_t noches, size_t &cnt) const;
 
     /**
      * @brief Muestra la fecha en formato "DD/MM/AAAA".
@@ -118,6 +126,26 @@ public:
      */
     void mostrar_fecha(const Fecha& fecha);
 
+    /**
+     * @brief Dice cuanto pesa, aproximadamente un objeto creado en memoria
+     * @return El peso de bytes del objeto
+     */
+
+    size_t get_size();
+
+    /**
+     * @brief Agrega años a la fecha actual y entrega una nueva fecha
+     * 
+     * @param anios Número de años a sumar
+     * @return Fecha* Puntero a una nueva instancia de Fecha con la fecha resultante.
+     *               El usuario es responsable de liberar la memoria.
+     */
+    Fecha* agregar_anios(uint8_t anios) const;
+
+    /**
+     * @brief Muestra la fecha en un formato legible.
+     */
+    void formato_legible() const;
 };
 
 #endif

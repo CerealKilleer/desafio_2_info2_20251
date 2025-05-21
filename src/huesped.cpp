@@ -34,8 +34,9 @@
  */
 #define LOG_ERROR(fn, msg) std::cerr << "[Huesped/" << fn << "]: " << msg << std::endl
 
- Huesped::Huesped(uint64_t documento, char *password, uint8_t antiguedad, float puntuacion) 
-     : m_documento(documento),  
+ Huesped::Huesped(uint64_t documento, const char *password, const char *nombre, uint8_t antiguedad, float puntuacion) 
+     : m_documento(documento),
+       m_nombre(nullptr),
        m_antiguedad(antiguedad), 
        m_puntuacion(puntuacion),
        m_password(nullptr),
@@ -52,7 +53,22 @@
             LOG_ERROR("Huesped", "Error al asignar memoria para la contraseña");
             return;
         }
-        strncpy(m_password, password, len);
+
+        if (nombre == nullptr) {
+            LOG_ERROR("Huesped", "El nombre es nulo");
+            m_nombre = nullptr;
+            return;
+        }
+
+        size_t len_nombre = strlen(nombre) + 1;
+        m_nombre = new char[len_nombre];
+        if (m_nombre == nullptr) {
+            LOG_ERROR("Huesped", "Error al asignar memoria para el nombre");
+            return;
+        }
+        memcpy(m_nombre, nombre, len_nombre);
+        m_nombre[len_nombre - 1] = '\0';
+        memcpy(m_password, password, len);
         m_password[len - 1] = '\0';
         m_reservas = new Linked_List<Reserva*>();
  };
@@ -154,14 +170,48 @@ void Huesped::set_reserva(Reserva* reserva)
     m_reservas->insert_front(reserva);
 }
 
+/**
+ * @brief Verifica si el huesped tiene reservas en un rango de fechas.
+ * 
+ * @param fecha_inicio Fecha de inicio del rango.
+ * @param fecha_fin Fecha de fin del rango.
+ * @return true si hay reservas en el rango, false en caso contrario.
+ */
+bool Huesped::tengo_reservas(Fecha *fecha_inicio, Fecha *fecha_fin) 
+{
+    Node<Reserva*>* current = m_reservas->get_head();
+    while (current != nullptr) {
+        Reserva* reserva = current->data;
+        if (*(reserva->get_fecha_entrada()) < *fecha_fin && *(reserva->get_fecha_salida()) > *fecha_inicio)
+            return true;
+        current = m_reservas->get_next(current);
+    }
+    return false;
+}
 
+/**
+ * @brief Muestra la información de una reserva.
+ * @param reserva Reserva a mostrar.
+ */
+void Huesped::mostrar_reserva_huesped(Reserva *reserva)
+{
+    std::cout << "Codigo reserva: " << reserva->get_codigo_reserva() << std::endl;
+    std::cout << "Nombre: " << m_nombre << std::endl;
+    std::cout << "Alojamiento (ID) " << reserva->get_codigo_alojamiento() << std::endl;
+    std::cout << "Fecha entrada: ";
+    reserva->get_fecha_entrada()->formato_legible();
+    std::cout << "Fecha salida: ";
+    reserva->get_fecha_salida()->formato_legible();
+
+}
 /**
 * @brief Destructor de la clase Huesped.
 * 
 * Libera los recursos ocupados por el objeto Huesped.
 */
 Huesped::~Huesped() 
-{
+{   
+    delete[] m_nombre;
     delete[] m_password;
     delete m_reservas;
     std::cout << "Huesped: " << m_documento << " destruido" << std::endl;

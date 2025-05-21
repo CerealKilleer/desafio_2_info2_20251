@@ -82,16 +82,8 @@ public:
      * @return El código del anfitrion.
      */
     uint64_t get_codigo_anfitrion() const;
-    /**
-     * @brief Obtiene el municipio del.
-     * @return Cadena con el nombre del municipio.
-     */
-    char *get_municipio() const;
-    /**
-     * @brief Obtiene el departamento del alojamiento.
-     * @return Cadena con el nombre del departamento.
-     */
-    char *get_departamento() const;
+    
+
     /**
      * @brief Obtiene el precio por noche del alojamiento.
      * @return precio por noche del alojamiento.
@@ -102,6 +94,15 @@ public:
      * @brief Muestra la información del alojamiento.
      */
     void mostrar_alojamiento() const;
+
+    /**
+     * @brief Verifica si hay reservas activas en un rango de fechas.
+     * @param desde Fecha de inicio.
+     * @param hasta Fecha de fin.
+     * @param dpto Departamento del alojamiento.
+     * @return true si hay reservas activas, false en caso contrario.
+     */
+    bool es_candidato_reserva(const Fecha &desde, const Fecha &hasta, const std::string &dpto) const;
     
     /**
      * @brief Elimina una reserva del alojamiento.
@@ -109,6 +110,7 @@ public:
      * @return true si la reserva fue eliminada, false en caso contrario.
      */
     bool eliminar_reserva(uint32_t codigo_reserva);
+
     /**
      * @brief Destructor.
      * 
