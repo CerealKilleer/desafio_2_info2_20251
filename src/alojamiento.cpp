@@ -107,6 +107,31 @@ void Alojamiento::mostrar_reservas() const
 }
 
 /**
+ * @brief Muestra las reservas activas del alojamiento en un rango de fechas
+ * 
+ * Recorre la lista de reservas y muestra la información de cada una
+ * que esté dentro del rango de fechas especificado.
+ * 
+ * @param desde Fecha de inicio.
+ * @param hasta Fecha de fin.
+ */
+
+bool Alojamiento::es_candidato_reserva(const Fecha &desde, const Fecha &hasta) const
+{
+    Node<Reserva*>* current = m_reservas->get_head();
+    while (current != nullptr) {
+        Reserva* reserva = current->data;
+        
+        if (*(reserva->get_fecha_entrada()) < hasta && *(reserva->get_fecha_salida()) > desde)
+            return false;
+        
+        current = m_reservas->get_next(current);
+    }
+    
+    return true;
+}
+
+/**
  * @brief Muestra las reservas activas del alojamiento en un rango de fechas y para un departamento en especifico.
  * 
  * Recorre la lista de reservas y muestra la información de cada una

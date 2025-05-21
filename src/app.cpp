@@ -110,6 +110,96 @@ static void obtener_fecha_actual(char* buffer, size_t buffer_size)
 }
 
 /**
+ * @brief Permite al usuario ingresar un número de punto flotante.
+ * @param numero Referencia al número de punto flotante a almacenar.
+ */
+void get_float(float &numero)
+{
+    numero = 0.0f;
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (input.empty()) {
+        numero = 0.0f;
+        return;
+    }
+
+    std::stringstream ss(input);
+    ss >> numero;
+
+    if (ss.fail())
+        numero = 0.0f;
+}
+
+/**
+ * @brief Permite al usuario ingresar un número entero sin signo de 32 bits.
+ * @param numero Referencia al número entero a almacenar.
+ */
+
+void get_int(uint32_t &numero)
+{
+    numero = 0;
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (input.empty()) {
+        numero = 0;
+        return;
+    }
+
+    std::stringstream ss(input);
+    ss >> numero;
+
+    if (ss.fail())
+        numero = 0.0f;
+}
+
+/**
+ * @brief Permite al usuario ingresar un número entero sin signo de 16 bits.
+ * @param numero Referencia al número entero a almacenar.
+ */
+
+void get_int_16(uint16_t &numero)
+{
+    numero = 0;
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (input.empty()) {
+        numero = 0;
+        return;
+    }
+
+    std::stringstream ss(input);
+    ss >> numero;
+
+    if (ss.fail())
+        numero = 0;
+}
+
+/**
+ * @brief Permite al usuario ingresar un número entero sin signo de 8 bits.
+ * @param numero Referencia al número entero a almacenar.
+ */
+void get_int_8(uint8_t &numero)
+{
+    numero = 0;
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (input.empty()) {
+        numero = 0;
+        return;
+    }
+
+    std::stringstream ss(input);
+    ss >> numero;
+
+    if (ss.fail())
+        numero = 0;
+}
+
+/**
  * @brief Divide una línea separada por ';' en un arreglo de campos.
  * 
  * @param linea Cadena con la línea completa.
@@ -674,7 +764,7 @@ void zona_anfitrion(Fecha *fecha_sistema)
         std::cout << "Bienvenido Anfitrion" << std::endl;
         std::cout << "Bienvenido: " << (anfitrion_user)->get_documento() << std::endl;
         std::cout << "Seleccione:\n1. Consultar reservaciones\n2. Anular reservacion\n3. Crear historico\n4. Cambiar fecha del sistema\n5. Guardar y salir" << std::endl;
-        std::cin >> opc;
+        get_int_8(opc);
         opc = opc - '0'; // Convertir al numerito :)
         
         switch (opc) {
@@ -951,73 +1041,6 @@ bool mostrar_alojamientos_disponibles(Linked_List<Alojamiento*> *alojamientos,
 }
 
 /**
- * @brief Permite al usuario ingresar un número de punto flotante.
- * @param numero Referencia al número de punto flotante a almacenar.
- */
-void get_float(float &numero)
-{
-    numero = 0.0f;
-    std::string input;
-    std::getline(std::cin, input);
-
-    if (input.empty()) {
-        numero = 0.0f;
-        return;
-    }
-
-    std::stringstream ss(input);
-    ss >> numero;
-
-    if (ss.fail())
-        numero = 0.0f;
-}
-
-/**
- * @brief Permite al usuario ingresar un número entero sin signo de 32 bits.
- * @param numero Referencia al número entero a almacenar.
- */
-
-void get_int(uint32_t &numero)
-{
-    numero = 0;
-    std::string input;
-    std::getline(std::cin, input);
-
-    if (input.empty()) {
-        numero = 0;
-        return;
-    }
-
-    std::stringstream ss(input);
-    ss >> numero;
-
-    if (ss.fail())
-        numero = 0.0f;
-}
-
-/**
- * @brief Permite al usuario ingresar un número entero sin signo de 16 bits.
- * @param numero Referencia al número entero a almacenar.
- */
-
-void get_int_16(uint16_t &numero)
-{
-    numero = 0;
-    std::string input;
-    std::getline(std::cin, input);
-
-    if (input.empty()) {
-        numero = 0;
-        return;
-    }
-
-    std::stringstream ss(input);
-    ss >> numero;
-
-    if (ss.fail())
-        numero = 0;
-}
-/**
  * @brief Verifica si un alojamiento existe en la lista de alojamientos.
  * @param alojamientos Lista de alojamientos.
  * @param codigo_alojamiento Código del alojamiento a buscar.
@@ -1038,6 +1061,69 @@ Alojamiento *existe_alojamiento(Linked_List<Alojamiento*> *alojamientos, uint32_
     return nullptr;
 }
 
+static Reserva *crear_reservacion_codigo(Unordered_Map<uint32_t, Alojamiento> *Alojamientos, 
+    Unordered_Map<uint64_t, Anfitrion> *Anfitriones, Fecha *sistema, uint32_t &codigo_reserva,
+    Huesped *huesped)
+{
+    uint16_t duracion;
+    size_t ciclos_cnt = 0;
+    size_t obj_creados = 0;
+    uint32_t codigo_alojamiento;
+
+    std::cout << "Ingrese el código del alojamiento: ";
+    get_int(codigo_alojamiento);
+    Alojamiento *alojamiento = Alojamientos->find(codigo_alojamiento);
+
+    if (alojamiento == nullptr) {
+        std::cerr << "El alojamiento no existe." << std::endl;
+        return nullptr;
+    }
+    alojamiento->mostrar_alojamiento();
+    //Se obtiene la fecha de inicio
+    Fecha *inicio_reservacion = obtener_fecha_entrada(sistema, obj_creados, ciclos_cnt);
+    Fecha *finalizacion_reservacion = nullptr;
+
+    if (inicio_reservacion == nullptr) {
+        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
+        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl; 
+        return nullptr;
+    }
+
+    //Se obtiene la duración y, por tanto, la fecha de finalización
+    finalizacion_reservacion = obtener_duracion_reserva(duracion, inicio_reservacion, ciclos_cnt);
+
+    if (finalizacion_reservacion == nullptr) {
+        delete inicio_reservacion;
+        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
+        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
+        return nullptr;
+    }
+
+    if (huesped->tengo_reservas(inicio_reservacion, finalizacion_reservacion)) {
+        delete inicio_reservacion;
+        delete finalizacion_reservacion;
+        std::cerr << "El huésped ya tiene reservas en esas fechas." << std::endl;
+        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
+        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
+        return nullptr;
+    }
+
+    if (!alojamiento->es_candidato_reserva(*inicio_reservacion, *finalizacion_reservacion)) {
+        std::cerr << "El alojamiento no está disponible en esas fechas." << std::endl;
+        delete inicio_reservacion;
+        delete finalizacion_reservacion;
+        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
+        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
+        return nullptr;
+    }
+
+    Reserva *reserva = agregar_reserva(alojamiento, codigo_reserva, duracion, inicio_reservacion, 
+                                       finalizacion_reservacion, huesped, sistema);
+    
+    reserva->mostrar();
+    return reserva;
+    
+}
 /**
  * @brief Crea una nueva reservacion
  * @param Alojamientos Mapa de alojamientos
@@ -1052,7 +1138,6 @@ static Reserva * crear_reservacion(Unordered_Map<uint32_t, Alojamiento> *Alojami
     uint16_t duracion;
     std::string municipio;
     struct callback_param_reservacion params = {nullptr, nullptr, nullptr, nullptr};
-    bool salir = false;
     size_t ciclos_cnt = 0;
     size_t obj_creados = 0;
     std::string departamento;
@@ -1148,16 +1233,13 @@ static Reserva * crear_reservacion(Unordered_Map<uint32_t, Alojamiento> *Alojami
         std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
         return nullptr;
     }
-
+    delete params.alojamientos_disponibles;
     //Ahora se crea la reserva
     Reserva *reserva = agregar_reserva(aloj, codigo_reserva, duracion, inicio_reservacion, 
                                        finalizacion_reservacion, huesped, sistema);
     
     reserva->mostrar();
     
-    std::cout << "Fecha inicio: " << inicio_reservacion->a_cadena(fecha) << std::endl;
-    std::cout << "Fecha fin: " << finalizacion_reservacion->a_cadena(fecha) << std::endl;
-
     return reserva;    
 }
 
@@ -1217,6 +1299,49 @@ Reserva *agregar_reserva(Alojamiento *aloj, uint32_t codigo_reserva, uint16_t du
     aloj->set_reserva(reserva);
     return reserva;
 }
+/**
+ * @brief Presenta el menú con las opciones de reservación.
+ * @param Alojamientos Mapa de alojamientos.
+ * @param Anfitriones Mapa de anfitriones.
+ * @param sistema Fecha del sistema.
+ * @param codigo_reserva Código de la reserva.
+ * @param huesped Huésped que realiza la reserva.
+ * @return Reserva* Puntero a la nueva reserva creada.
+ */
+Reserva *menu_reservacion(Unordered_Map<uint32_t, Alojamiento> *Alojamientos, 
+    Unordered_Map<uint64_t, Anfitrion> *Anfitriones, Fecha *sistema, uint32_t &codigo_reserva,
+    Huesped *huesped)
+{
+    uint8_t opc = 0;
+    Reserva *reserva = nullptr;
+
+    do {
+        std::cout << "Bienvenido a la sección de reservaciones" << std::endl;
+        std::cout << "Seleccione:\n1. Crear reservación por código\n2. Crear reservación con filtros\n3. Salir" << std::endl;
+        get_int_8(opc);
+        opc = opc - '0'; // Convertir al numerito :)
+    } while (opc < 1 || opc > 3);
+    
+    switch (opc) {
+        case 1:
+            std::cout << "Crear reservación por código" << std::endl;
+            reserva = crear_reservacion_codigo(Alojamientos, Anfitriones, sistema, codigo_reserva, huesped);
+            break;
+        case 2:
+            std::cout << "Crear reservación con filtros" << std::endl;
+            reserva = crear_reservacion(Alojamientos, Anfitriones, sistema, codigo_reserva, huesped);
+            break;
+        case 3:
+            std::cout << "Saliendo..." << std::endl;
+            break;
+        default:
+            std::cout << "Opción no válida." << std::endl;
+            break;
+    }
+    
+    return reserva;
+}
+   
 
 /**
  * @brief Zona de operaciones para el huésped.
@@ -1239,44 +1364,46 @@ void zona_huesped(Fecha *fecha_sistema)
     size_t num_reservas = 0;
     bool update_reservas = false;
     uint32_t codigo_reserva;
-
+    uint32_t cod_buscar_reserva;
+    uint8_t opc;
     Anfitriones = cargar_anfitriones(ANFITRION_FILE);
     Alojamientos = cargar_alojamientos_completos(ALOJAMIENTO_FILE, Anfitriones, num_reservas);
     Reservas = leer_reservas(RESERVAS_FILE, &Alojamientos, huesped_user, num_reservas, codigo_reserva);
 
     Reserva *reserva = nullptr;
-    uint8_t opc = 0;
+    get_int_8(opc);
+
     do {
         std::cout << "Bienvenido Huesped" << std::endl;
         std::cout << "Bienvenido: " << (huesped_user)->get_documento() << std::endl;
         std::cout << "Seleccione:\n1. Anular reservaciones\n2. Hacer reservaciones\n3.Guardar y Salir" << std::endl;
-        std::cin >> opc;
+        get_int_8(opc);
         opc = opc - '0'; // Convertir al numerito :)
         switch (opc) {
             case 1:
                 std::cout << "Anular reservación" << std::endl;
                 std::cout << "Ingrese el código de la reserva a anular: ";
                 
-                std::cin >> codigo_reserva;
-                reserva = Reservas->find(codigo_reserva);
+                get_int(cod_buscar_reserva);
+                reserva = Reservas->find(cod_buscar_reserva);
                 if (reserva == nullptr) {
-                    std::cerr << "No se encontró la reserva con el código: " << codigo_reserva << std::endl;
+                    std::cerr << "No se encontró la reserva con el código: " << cod_buscar_reserva << std::endl;
                     break;
                 }
                 if (huesped_user->eliminar_reserva(reserva)) {
                     num_reservas--;
                     escribir_cancelaciones(reserva, CANCELACIONES_FILE);
-                    delete Reservas->erase(codigo_reserva);
+                    delete Reservas->erase(cod_buscar_reserva);
                     update_reservas = true;
                 }
                 break;
             case 2:
                 std::cout << "Crear reservación" << std::endl;
-                reserva = crear_reservacion(Alojamientos, Anfitriones, fecha_sistema, codigo_reserva, huesped_user);
+                reserva = menu_reservacion(Alojamientos, Anfitriones, fecha_sistema, codigo_reserva, huesped_user);
                 if(reserva != nullptr) {
                     codigo_reserva = reserva->get_codigo_reserva();
                     num_reservas++;
-                    Reservas->insert(reserva->get_codigo_reserva(), reserva);
+                    Reservas->insert(codigo_reserva, reserva);
                     huesped_user->mostrar_reserva_huesped(reserva);
                     update_reservas = true;
                 }

@@ -83,7 +83,13 @@ public:
      */
     uint64_t get_codigo_anfitrion() const;
     
-
+    /**
+     * @brief Valida si el alojamiento tiene reservas activas en un rango de fechas.
+     * @param desde Fecha de inicio.
+     * @param hasta Fecha de fin.
+     * @return true si no hay reservas activas, false en caso contrario.
+     */
+    bool es_candidato_reserva(const Fecha &desde, const Fecha &hasta) const;
     /**
      * @brief Obtiene el precio por noche del alojamiento.
      * @return precio por noche del alojamiento.
