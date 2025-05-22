@@ -5,6 +5,7 @@
 #ifndef __LINKED_LIST_TPP__
 #define __LINKED_LIST_TPP__
 #include "linked_list.hpp"
+#include "performance.hpp"
 
 template <typename T>
 Node<T>::Node(T value) : data(value), next(nullptr) {}
@@ -17,6 +18,8 @@ Linked_List<T>::~Linked_List() {
     Node<T>* current = head;
     while (current) {
         Node<T>* next = current->next;
+        g_ciclos++;
+        g_tamano -= sizeof(T);
         delete current;  // Solo elimina los nodos, no los datos apuntados
         current = next;
     }
@@ -25,6 +28,7 @@ Linked_List<T>::~Linked_List() {
 template <typename T>
 void Linked_List<T>::insert_front(T value) {
     Node<T>* new_node = new Node<T>(value);
+    g_tamano += sizeof(T);
     new_node->next = head;
     head = new_node;
     size++;
@@ -41,6 +45,7 @@ bool Linked_List<T>::remove(T value) {
     if (head->data == value) {
         Node<T>* temp = head;
         head = head->next;
+        g_tamano -= sizeof(T);
         delete temp;
         size--;
         return true;
@@ -49,12 +54,14 @@ bool Linked_List<T>::remove(T value) {
     Node<T>* current = head;
     while (current->next && current->next->data != value) {
         current = current->next;
+        g_ciclos++;
     }
 
     if (current->next) {
         Node<T>* temp = current->next;
         current->next = current->next->next;
         size--;
+        g_tamano -= sizeof(T);
         delete temp;
         return true;
     }
@@ -71,6 +78,8 @@ void Linked_List<T>::clear_data() {
     Node<T>* current = head;
     while (current) {
         // Elimina el objeto apuntado por data
+        g_ciclos++;
+        g_tamano -= sizeof(T);
         delete current->data;
         current->data = nullptr;    
         current = current->next;

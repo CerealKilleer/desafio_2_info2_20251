@@ -8,6 +8,7 @@
  */
 
  #include "anfitrion.hpp"
+ #include "performance.hpp"
  #include <stdint.h>
  #include <string>
  #include <cstring>
@@ -107,7 +108,7 @@
   */
  size_t Anfitrion::get_obj_size() const 
  { 
-    size_t total_size = sizeof(Anfitrion); 
+    size_t total_size = sizeof(*this); 
     total_size += strlen(m_password) + 1;
  
     return total_size;
@@ -139,7 +140,6 @@ Alojamiento* Anfitrion::set_alojamiento(Alojamiento* alojamiento)
 
 bool Anfitrion::eliminar_reserva(Reserva* reserva)
 {
-    size_t cnt = 0;
     if (reserva == nullptr) {
         LOG_ERROR("eliminar_reserva", "La reserva es nula");
         return false;
@@ -148,6 +148,7 @@ bool Anfitrion::eliminar_reserva(Reserva* reserva)
     Node<Alojamiento*>* current = m_alojamientos->get_head();
 
     while (current != nullptr) {
+        g_ciclos++;
         Alojamiento* alojamiento = current->data;
         if (alojamiento->get_id() == codigo_alojamiento) {
             if (alojamiento->eliminar_reserva(reserva->get_codigo_reserva())) {
@@ -159,10 +160,7 @@ bool Anfitrion::eliminar_reserva(Reserva* reserva)
             break;
         }
         current = m_alojamientos->get_next(current);
-        cnt++;
     }
-
-    LOG_SUCCESS("eliminar_reserva", "La operación tomó: " + std::to_string(cnt) + " ciclos");
     return true;
 }
 /**
@@ -186,6 +184,7 @@ void Anfitrion::mostrar_alojamientos(Fecha &desde, Fecha &hasta) const
         alojamiento->mostrar_reservas(desde, hasta);
         std::cout << "------------------------" << std::endl;
         current = m_alojamientos->get_next(current);
+        g_ciclos++;
     }
 }
 

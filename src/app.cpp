@@ -5,7 +5,12 @@
  * Este archivo contiene la implementación de la función principal de la aplicación
  */
 
+
 #include "app.hpp"
+#include "performance.hpp"
+/** Variables globales para medir ciclos y tamaño de objetos en memoria */
+uint64_t g_ciclos = 0; ///< Contador de ciclos
+uint64_t g_tamano = 0; ///< Tamaño total de objetos en memoria
 
 /**
  * @brief Permite al usuario ingresar un número entero sin signo de 16 bits.
@@ -21,7 +26,9 @@ void get_int_16(uint16_t &numero);
  * @param num_reservas Número de reservas en el arreglo.
  * @param historico_file Ruta del archivo donde se guardará el histórico.
  */
-static bool crear_historico_reservas(Unordered_Map<uint32_t, Reserva>* Reservas, const char* filename, Anfitrion* anfitrion, Fecha *fecha_sistema);
+static bool crear_historico_reservas(Unordered_Map<uint32_t, Reserva>* Reservas, 
+                                    const char* filename, Anfitrion* anfitrion, 
+                                    Fecha *fecha_sistema, size_t &num_reservas);
 
 /**
  * @brief Busca un huésped en el archivo dado a partir de su documento y contraseña.
@@ -97,7 +104,7 @@ Reserva *agregar_reserva(Alojamiento *aloj, uint32_t codigo_reserva, uint16_t du
  * @return Mapa hash que contiene los alojamientos leídos.
  */
 static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename, 
-                                        Unordered_Map<uint32_t, Alojamiento>**alojamientos,
+                                        Unordered_Map<uint32_t, Alojamiento>*alojamientos,
                                         Huesped *huesped,
                                         size_t &num_reservas, uint32_t &codigo_reserva);
 
@@ -216,10 +223,12 @@ static uint32_t dividir_linea(const std::string &linea, std::string *campos, uin
         size_t pos_fin = linea.find(';', pos_ini);
         if (pos_fin == std::string::npos) {
             campos[cnt++] = linea.substr(pos_ini);
+            g_ciclos++;
             break;
         } else {
             campos[cnt++] = linea.substr(pos_ini, pos_fin - pos_ini);
             pos_ini = pos_fin + 1;
+            g_ciclos++;
         }
     }
 
@@ -235,7 +244,8 @@ static uint32_t dividir_linea(const std::string &linea, std::string *campos, uin
  * @return Mapa hash que contiene las reservas leídas.
 */
 
-static Unordered_Map<uint32_t, Alojamiento>* leer_alojamientos(const char* filename, Anfitrion *anfitrion, size_t &num_alojamientos) 
+static Unordered_Map<uint32_t, Alojamiento>* leer_alojamientos(const char* filename, 
+                                                                Anfitrion *anfitrion)
 {
     std::ifstream archivo(filename);
     if (!archivo.is_open()) {
@@ -244,10 +254,9 @@ static Unordered_Map<uint32_t, Alojamiento>* leer_alojamientos(const char* filen
     }
 
     std::string linea;
-    num_alojamientos = 0;
-
-    while (std::getline(archivo, linea))
-        num_alojamientos++;
+    size_t num_alojamientos = 0;
+    archivo >> num_alojamientos;
+    archivo.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     archivo.close();
     archivo.open(filename);
@@ -267,10 +276,9 @@ static Unordered_Map<uint32_t, Alojamiento>* leer_alojamientos(const char* filen
 
     std::string campos[CAMPOS_MAX_ALOJAMIENTO];
 
-    for (size_t alojamiento = 0; std::getline(archivo, linea); alojamiento++) {
+    for (size_t alojamiento = 0; std::getline(archivo, linea); alojamiento++, g_ciclos++) {
         uint8_t campos_extraidos = dividir_linea(linea, campos, CAMPOS_MAX_ALOJAMIENTO);
         if (campos_extraidos < CAMPOS_MAX_ALOJAMIENTO) {
-            std::cerr << "Línea con menos campos de los esperados: " << linea << std::endl;
             continue;
         }
 
@@ -291,9 +299,10 @@ static Unordered_Map<uint32_t, Alojamiento>* leer_alojamientos(const char* filen
             if (documento_anfitrion == anfitrion_doc) {
                 Alojamiento *alojamiento = new Alojamiento(codigo_alojamiento, nombre, documento_anfitrion,
                                                           direccion, departamento, municipio, tipo, precio, amenidades);
+                g_tamano += alojamiento->get_size();
                 Alojamientos->insert(codigo_alojamiento, alojamiento);
                 anfitrion->set_alojamiento(alojamiento);
-                num_alojamientos++;
+                g_tamano += alojamiento->get_size();
             }
         } catch (const std::exception& e) {
             std::cerr << "Error al convertir campos en línea: " << linea << std::endl;
@@ -341,7 +350,7 @@ static Unordered_Map<uint32_t, Alojamiento>* cargar_alojamientos_completos(const
         std::cerr << "Error al asignar memoria para los alojamientos." << std::endl;
         return nullptr;
     }
-
+    
     std::string campos[CAMPOS_MAX_ALOJAMIENTO];
 
     for (size_t alojamiento = 0; std::getline(archivo, linea); alojamiento++) {
@@ -371,7 +380,9 @@ static Unordered_Map<uint32_t, Alojamiento>* cargar_alojamientos_completos(const
                 Alojamientos->insert(codigo_alojamiento, alojamiento);
                 anfitrion->set_alojamiento(alojamiento);
                 num_alojamientos++;
+                g_tamano += alojamiento->get_size();
             }
+            g_ciclos++;
         } catch (const std::exception& e) {
             std::cerr << "Error al convertir campos en línea: " << linea << std::endl;
         }
@@ -390,7 +401,7 @@ static Unordered_Map<uint32_t, Alojamiento>* cargar_alojamientos_completos(const
 */
 
 static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename, 
-                                        Unordered_Map<uint32_t, Alojamiento>**alojamientos,
+                                        Unordered_Map<uint32_t, Alojamiento>*alojamientos,
                                         Huesped *huesped,
                                         size_t &num_reservas, uint32_t &codigo_reserva)
 {
@@ -422,10 +433,10 @@ static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename,
     }
     std::string campos[CAMPOS_MAX_RESERVA];
 
-    for (size_t reserva = 0; std::getline(archivo, linea); reserva++) {
+    for (size_t reserva = 0; std::getline(archivo, linea); reserva++, g_ciclos++) {
         uint8_t campos_extraidos = dividir_linea(linea, campos, CAMPOS_MAX_RESERVA);
+    
         if (campos_extraidos < CAMPOS_MAX_RESERVA) {
-            std::cerr << "Línea con menos campos de los esperados: " << linea << std::endl;
             continue;
         }
 
@@ -447,15 +458,15 @@ static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename,
             fecha_inicio_obj->cargar_desde_cadena(fecha_inicio);
             Fecha *fecha_pago_obj = new Fecha();
             fecha_pago_obj->cargar_desde_cadena(fecha_pago);
-            Fecha *fecha_final_obj = fecha_inicio_obj->sumar_noches(duracion, ciclos_cnt);
+            Fecha *fecha_final_obj = fecha_inicio_obj->sumar_noches(duracion);
 
             Reserva *reserva = new Reserva(fecha_inicio_obj, fecha_final_obj, duracion, codigo_reserva,
                                             codigo_alojamiento, documento_huesped, metodo_pago,
                                             fecha_pago_obj, monto, anotaciones);
-            
+            g_tamano += reserva->get_size();
             reservas->insert(codigo_reserva, reserva);
-            if (*alojamientos != nullptr) {
-                alojamiento = (*alojamientos)->find(reserva->get_codigo_alojamiento());
+            if (alojamientos != nullptr) {
+                alojamiento = alojamientos->find(reserva->get_codigo_alojamiento());
             }
                 
             if (alojamiento != nullptr)
@@ -507,6 +518,7 @@ static Huesped * buscar_huesped(const char *huesped_file, uint64_t documento, ch
     archivo >> size;
 
     while (getline(archivo, linea)) {
+        g_ciclos++;
         uint8_t campos_extraidos = dividir_linea(linea, campos, CAMPOS_MAX_HUESPED);
         if (campos_extraidos < CAMPOS_MAX_HUESPED) {
             std::cerr << "Línea con menos campos de los esperados: " << linea << std::endl;
@@ -521,6 +533,7 @@ static Huesped * buscar_huesped(const char *huesped_file, uint64_t documento, ch
 
         if (doc == documento && strcmp(pass, password) == 0) {
             Huesped *huesped = new Huesped(doc, pass, nombre_huesped.c_str(), antiguedad, puntuacion);
+            g_tamano += huesped->get_obj_size();
             return huesped; //Memoria dinamica, la libera el llamador
         }
     }
@@ -559,6 +572,8 @@ static Anfitrion * buscar_anfitrion(const char *anfitrion_file, uint64_t documen
             Anfitrion *anfitrion = new Anfitrion(doc, pass, antiguedad, puntuacion);
             return anfitrion; //Memoria dinamica, la libera el llamador
         }
+        g_ciclos++;
+        g_tamano += sizeof(Anfitrion);
     }
     archivo.close();
     return nullptr;
@@ -595,6 +610,8 @@ static Unordered_Map<uint64_t, Anfitrion> *cargar_anfitriones(const char *anfitr
         size_t len = strlen(pass) + 1;
         Anfitrion *anfitrion = new Anfitrion(doc, pass, antiguedad, puntuacion);
         anfitriones->insert(doc, anfitrion);
+        g_ciclos++;
+        g_tamano += anfitrion->get_obj_size();
     }
 
     archivo.close();
@@ -737,14 +754,15 @@ void zona_anfitrion(Fecha *fecha_sistema)
     Anfitrion *anfitrion_user = nullptr;
     if (!iniciar_sesion_anfitrion(&anfitrion_user)) {
         std::cerr << "Error al iniciar sesión." << std::endl;
+        std::cout << "Se hicieron " << g_ciclos << " ciclos para iniciar sesión" << std::endl;
+        std::cout << "Se usaron " << g_tamano << " bytes de memoria para iniciar sesión" << std::endl;
         return;
     }
+    g_ciclos = 0;
 
     uint8_t opc = 0;
     size_t num_reservas = 0;
-    size_t num_alojamientos = 0;
     uint32_t codigo_reserva = 0;
-
     bool update_reservas = false;
     Unordered_Map<uint32_t, Alojamiento>* Alojamientos = nullptr;
     Unordered_Map<uint32_t, Reserva>* Reservas = nullptr;
@@ -752,9 +770,12 @@ void zona_anfitrion(Fecha *fecha_sistema)
     Fecha *fecha_actual = new Fecha();
     fecha_actual->cargar_desde_cadena("18/05/2025");
 
-    Alojamientos = leer_alojamientos(ALOJAMIENTO_FILE, anfitrion_user, num_alojamientos);
-    Reservas = leer_reservas(RESERVAS_FILE, &Alojamientos, nullptr, num_reservas, codigo_reserva);
-
+    Alojamientos = leer_alojamientos(ALOJAMIENTO_FILE, anfitrion_user);
+    Reservas = leer_reservas(RESERVAS_FILE, Alojamientos, nullptr, num_reservas, codigo_reserva);
+    std::cout << "Se hicieron " << g_ciclos << " ciclos cargar los datos en memoria" << std::endl;
+    std::cout << "Se usaron " << g_tamano << " bytes de memoria" << std::endl;
+    g_ciclos = 0;
+    
     Reserva *reserva = nullptr;
     char fecha_inicio[LONG_FECHA_CADENA + 1];
     char fecha_fin[LONG_FECHA_CADENA + 1];
@@ -762,9 +783,9 @@ void zona_anfitrion(Fecha *fecha_sistema)
     Fecha *fecha_fin_obj = nullptr;
     do {
         std::cout << "Bienvenido Anfitrion" << std::endl;
-        std::cout << "Bienvenido: " << (anfitrion_user)->get_documento() << std::endl;
+        std::cout << "ID -> " << (anfitrion_user)->get_documento() << std::endl;
         std::cout << "Seleccione:\n1. Consultar reservaciones\n2. Anular reservacion\n3. Crear historico\n4. Cambiar fecha del sistema\n5. Guardar y salir" << std::endl;
-        get_int_8(opc);
+        std::cin >> opc;
         opc = opc - '0'; // Convertir al numerito :)
         
         switch (opc) {
@@ -782,6 +803,9 @@ void zona_anfitrion(Fecha *fecha_sistema)
                     std::cerr << "Revise el formato de las fechas" << std::endl;
                 delete fecha_inicio_obj;
                 delete fecha_fin_obj;
+                std::cout << "Se hicieron " << g_ciclos << " ciclos para mostrar las reservas" << std::endl;
+                std::cout << "Los objetos pesan " << g_tamano << " bytes de memoria" << std::endl;
+                g_ciclos = 0;
                 break;
             case 2:
                 std::cout << "Anular reservación" << std::endl;
@@ -792,20 +816,29 @@ void zona_anfitrion(Fecha *fecha_sistema)
 
                 if (reserva == nullptr) {
                     std::cerr << "No se encontró la reserva con el código: " << codigo_reserva << std::endl;
+                    std::cout << "Se hicieron " << g_ciclos << " ciclos para anular la reserva" << std::endl;
+                    std::cout << "Los objetos pesan " << g_tamano << " bytes de memoria" << std::endl;
                     break;
                 }
 
                 if (anfitrion_user->eliminar_reserva(reserva)) {
                     num_reservas--;
                     escribir_cancelaciones(reserva, CANCELACIONES_FILE);
-                    delete Reservas->erase(codigo_reserva);
+                    Reserva *tmp = Reservas->erase(codigo_reserva);
+                    g_tamano -= tmp->get_size();
+                    delete tmp;
                     update_reservas = true;
+                    std::cout << "Se hicieron " << g_ciclos << " ciclos para anular la reserva" << std::endl;
+                    std::cout << "Los objetos pesan " << g_tamano << " bytes de memoria" << std::endl;
                 }
-
+                g_ciclos = 0;
                 break;
             case 3:
                 std::cout << "Crear histórico de reservas" << std::endl;
-                update_reservas = crear_historico_reservas(Reservas, HISTORICO_FILE, anfitrion_user, fecha_actual);
+                update_reservas = crear_historico_reservas(Reservas, HISTORICO_FILE, anfitrion_user, fecha_actual, num_reservas);
+                std::cout << "Se hicieron " << g_ciclos << " ciclos para crear el histórico" << std::endl;
+                std::cout << "Los objetos pesan " << g_tamano << " bytes de memoria" << std::endl;
+                g_ciclos = 0;
                 break;
             case 4:
                 std::cout << "Cambiar fecha del sistema" << std::endl;
@@ -817,6 +850,9 @@ void zona_anfitrion(Fecha *fecha_sistema)
                 } else {
                     std::cerr << "Error al cargar la fecha." << std::endl;
                 }
+                std::cout << "Se hicieron " << g_ciclos << " ciclos para cambiar la fecha" << std::endl;
+                std::cout << "Los objetos en memoria pesan " << g_tamano << " bytes de memoria" << std::endl;
+                g_ciclos = 0;
                 break;
             case 5:
                 std::cout << "Saliendo..." << std::endl;
@@ -888,8 +924,10 @@ static void agregar_historico_reservas(uint32_t codigo_reserva, Reserva* reserva
  * @param filename Nombre del archivo donde se guardarán las reservas.
  * @param anfitrion Puntero al anfitrión que está creando el histórico.
  * @param fecha_sistema Fecha del sistema actual.
+ * @param num_reservas Número de reservas a escribir.
  */
-static bool crear_historico_reservas(Unordered_Map<uint32_t, Reserva>* Reservas, const char* filename, Anfitrion* anfitrion, Fecha *fecha_sistema)
+static bool crear_historico_reservas(Unordered_Map<uint32_t, Reserva>* Reservas, const char* filename, 
+                                     Anfitrion* anfitrion, Fecha *fecha_sistema, size_t &num_reservas)
 {
     std::ofstream archivo(filename, std::ios::app);
     struct callback_param_historico params = {&archivo, fecha_sistema, anfitrion};
@@ -916,6 +954,7 @@ static bool crear_historico_reservas(Unordered_Map<uint32_t, Reserva>* Reservas,
     char buffer[LONG_FECHA_CADENA + 1] = {0};
 
     while (current != nullptr) {
+        g_ciclos++;
         current->data->get_fecha_entrada()->a_cadena(buffer);
         archivo << buffer << ";";
         archivo << current->data->get_duracion() << ";";
@@ -926,8 +965,11 @@ static bool crear_historico_reservas(Unordered_Map<uint32_t, Reserva>* Reservas,
         archivo << current->data->get_fecha_pago()->a_cadena(buffer) << ";";
         archivo << current->data->get_monto() << ";";
         archivo << (current->data->get_anotaciones() ? current->data->get_anotaciones() : "") << "\n";
-        delete Reservas->erase(current->data->get_codigo_reserva());
+        Reserva *tmp = Reservas->erase(current->data->get_codigo_reserva());
+        g_tamano -= tmp->get_size();
+        delete tmp;
         current = current->next;
+        num_reservas--;
     }
     
     delete params.historico;
@@ -940,10 +982,8 @@ static bool crear_historico_reservas(Unordered_Map<uint32_t, Reserva>* Reservas,
 /**
  * @brief Obtiene la fecha de entrada de la futura reservacion
  * @param sistema fecha del sistema
- * @param obj_creados referencia al contador de objetos creados para esta operacion
- * @param ciclos_cnt referencia al contador de ciclos para la operación
  */
-static Fecha *obtener_fecha_entrada(Fecha *sistema, size_t &obj_creados, size_t &ciclos_cnt)
+static Fecha *obtener_fecha_entrada(Fecha *sistema)
 {
     char fecha_inicio[LONG_FECHA_CADENA + 1];
     Fecha *fecha_inicio_obj = new Fecha();
@@ -968,16 +1008,16 @@ static Fecha *obtener_fecha_entrada(Fecha *sistema, size_t &obj_creados, size_t 
     }
 
     delete fecha_maxima_obj;
-    obj_creados = fecha_inicio_obj->get_size();
+
     return fecha_inicio_obj;
 }
 
-static Fecha *obtener_duracion_reserva(uint16_t &duracion, Fecha *inicio_reservacion, size_t ciclos_cnt)
+static Fecha *obtener_duracion_reserva(uint16_t &duracion, Fecha *inicio_reservacion)
 {
     std::cout << "Escriba la duración en noches de su reservación" << std::endl;
     get_int_16(duracion);
     
-    Fecha *fin_reservacion = inicio_reservacion->sumar_noches(duracion, ciclos_cnt);
+    Fecha *fin_reservacion = inicio_reservacion->sumar_noches(duracion);
     Fecha *maxima = inicio_reservacion->agregar_anios(1);
 
     if (*fin_reservacion > *maxima) {
@@ -1035,6 +1075,7 @@ bool mostrar_alojamientos_disponibles(Linked_List<Alojamiento*> *alojamientos,
             }
         }
         current = current->next;
+        g_ciclos++;
     }
 
     return encontrado;
@@ -1057,6 +1098,7 @@ Alojamiento *existe_alojamiento(Linked_List<Alojamiento*> *alojamientos, uint32_
         if (current->data->get_id() == codigo_alojamiento)
             return current->data;
         current = current->next;
+        g_ciclos++;
     }
     return nullptr;
 }
@@ -1080,31 +1122,25 @@ static Reserva *crear_reservacion_codigo(Unordered_Map<uint32_t, Alojamiento> *A
     }
     alojamiento->mostrar_alojamiento();
     //Se obtiene la fecha de inicio
-    Fecha *inicio_reservacion = obtener_fecha_entrada(sistema, obj_creados, ciclos_cnt);
+    Fecha *inicio_reservacion = obtener_fecha_entrada(sistema);
     Fecha *finalizacion_reservacion = nullptr;
 
     if (inicio_reservacion == nullptr) {
-        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
-        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl; 
         return nullptr;
     }
 
     //Se obtiene la duración y, por tanto, la fecha de finalización
-    finalizacion_reservacion = obtener_duracion_reserva(duracion, inicio_reservacion, ciclos_cnt);
+    finalizacion_reservacion = obtener_duracion_reserva(duracion, inicio_reservacion);
 
     if (finalizacion_reservacion == nullptr) {
         delete inicio_reservacion;
-        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
-        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
         return nullptr;
     }
 
     if (huesped->tengo_reservas(inicio_reservacion, finalizacion_reservacion)) {
+        std::cerr << "Ya tiene una reserva en esas fechas." << std::endl;
         delete inicio_reservacion;
         delete finalizacion_reservacion;
-        std::cerr << "El huésped ya tiene reservas en esas fechas." << std::endl;
-        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
-        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
         return nullptr;
     }
 
@@ -1112,8 +1148,6 @@ static Reserva *crear_reservacion_codigo(Unordered_Map<uint32_t, Alojamiento> *A
         std::cerr << "El alojamiento no está disponible en esas fechas." << std::endl;
         delete inicio_reservacion;
         delete finalizacion_reservacion;
-        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
-        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
         return nullptr;
     }
 
@@ -1138,38 +1172,30 @@ static Reserva * crear_reservacion(Unordered_Map<uint32_t, Alojamiento> *Alojami
     uint16_t duracion;
     std::string municipio;
     struct callback_param_reservacion params = {nullptr, nullptr, nullptr, nullptr};
-    size_t ciclos_cnt = 0;
-    size_t obj_creados = 0;
     std::string departamento;
     float puntuacion, precio;
     char fecha[LONG_FECHA_CADENA + 1] = {0};
     //Se obtiene la fecha de inicio
-    Fecha *inicio_reservacion = obtener_fecha_entrada(sistema, obj_creados, ciclos_cnt);
+    Fecha *inicio_reservacion = obtener_fecha_entrada(sistema);
     Fecha *finalizacion_reservacion = nullptr;
 
     if (inicio_reservacion == nullptr) {
-        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
-        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl; 
         return nullptr;
     }
 
     //Se obtiene la duración y, por tanto, la fecha de finalización
-    finalizacion_reservacion = obtener_duracion_reserva(duracion, inicio_reservacion, ciclos_cnt);
+    finalizacion_reservacion = obtener_duracion_reserva(duracion, inicio_reservacion);
 
     if (huesped->tengo_reservas(inicio_reservacion, finalizacion_reservacion)) {
         delete inicio_reservacion;
         delete finalizacion_reservacion;
-        std::cerr << "El huésped ya tiene reservas en esas fechas." << std::endl;
-        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
-        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
+        std::cout << "Ya tiene una reserva en esas fechas." << std::endl;
         return nullptr;
     }
 
     if (finalizacion_reservacion == nullptr) {
-        obj_creados -= inicio_reservacion->get_size();
         delete inicio_reservacion;
-        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
-        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
+        std::cerr << "Error al obtener la fecha de finalización." << std::endl;
         return nullptr;
     }
 
@@ -1191,8 +1217,6 @@ static Reserva * crear_reservacion(Unordered_Map<uint32_t, Alojamiento> *Alojami
         delete inicio_reservacion;
         delete finalizacion_reservacion;
         std::cerr << "No se encontraron alojamientos disponibles." << std::endl;
-        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
-        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
         return nullptr;
     }
 
@@ -1210,8 +1234,6 @@ static Reserva * crear_reservacion(Unordered_Map<uint32_t, Alojamiento> *Alojami
         delete inicio_reservacion;
         delete finalizacion_reservacion;
         std::cerr << "No se encontraron alojamientos disponibles." << std::endl;
-        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
-        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
         return nullptr;
     }
 
@@ -1229,8 +1251,6 @@ static Reserva * crear_reservacion(Unordered_Map<uint32_t, Alojamiento> *Alojami
         delete inicio_reservacion;
         delete finalizacion_reservacion;
         std::cerr << "El alojamiento no existe." << std::endl;
-        std::cerr << "No se creó la reservación. " << "Se usaron: " << ciclos_cnt << " ciclos" << std::endl;
-        std::cerr << "Los objetos creados ocupan: " << "0" << " bytes" << std::endl;
         return nullptr;
     }
     delete params.alojamientos_disponibles;
@@ -1354,8 +1374,16 @@ void zona_huesped(Fecha *fecha_sistema)
     Huesped *huesped_user = nullptr;
     if (!iniciar_sesion_huesped(&huesped_user)) {
         std::cerr << "Error al iniciar sesión." << std::endl;
+        std::cout << "Se hicieron: " << g_ciclos << " ciclos para iniciar sesión" << std::endl;
+        std::cout << "Los objetos creados ocupan: " << g_tamano << " bytes" << std::endl;
+        g_ciclos = 0;
+        g_tamano = 0;
         return;
     }
+    std::cout << "Se hicieron: " << g_ciclos << " ciclos para iniciar sesión" << std::endl;
+    std::cout << "Los objetos en memoria ocupan: " << g_tamano << " bytes" << std::endl;
+    g_ciclos = 0;
+    g_tamano = 0;
 
     Unordered_Map<uint32_t, Reserva>* Reservas = nullptr;
     Unordered_Map<uint32_t, Alojamiento>* Alojamientos = nullptr;
@@ -1368,8 +1396,12 @@ void zona_huesped(Fecha *fecha_sistema)
     uint8_t opc;
     Anfitriones = cargar_anfitriones(ANFITRION_FILE);
     Alojamientos = cargar_alojamientos_completos(ALOJAMIENTO_FILE, Anfitriones, num_reservas);
-    Reservas = leer_reservas(RESERVAS_FILE, &Alojamientos, huesped_user, num_reservas, codigo_reserva);
+    Reservas = leer_reservas(RESERVAS_FILE, Alojamientos, huesped_user, num_reservas, codigo_reserva);
+    g_tamano += (Anfitriones->info_map() + Alojamientos->info_map() + Reservas->info_map());
 
+    std::cout << "Se hicieron: " << g_ciclos << " ciclos para cargar los datos en memoria" << std::endl;
+    g_ciclos = 0;
+    std::cout << "Los objetos creados ocupan: " << g_tamano << " bytes" << std::endl;
     Reserva *reserva = nullptr;
     get_int_8(opc);
 
@@ -1388,13 +1420,24 @@ void zona_huesped(Fecha *fecha_sistema)
                 reserva = Reservas->find(cod_buscar_reserva);
                 if (reserva == nullptr) {
                     std::cerr << "No se encontró la reserva con el código: " << cod_buscar_reserva << std::endl;
+                    std::cout << "Se hicieron: " << g_ciclos << " ciclos para anular una reserva" << std::endl;
+                    std::cout << "Los objetos creados ocupan: " << g_tamano << " bytes" << std::endl;
+                    g_ciclos = 0;
                     break;
                 }
                 if (huesped_user->eliminar_reserva(reserva)) {
                     num_reservas--;
                     escribir_cancelaciones(reserva, CANCELACIONES_FILE);
-                    delete Reservas->erase(cod_buscar_reserva);
+                    Reserva *reserva = Reservas->erase(cod_buscar_reserva);
+                    g_tamano -= reserva->get_size();
+                    delete reserva;
                     update_reservas = true;
+                    std::cout << "Se hicieron: " << g_ciclos << " ciclos para nular una reserva" << std::endl;
+                    std::cout << "Los objetos creados ocupan: " << g_tamano << " bytes" << std::endl;
+                    g_ciclos = 0;
+                } else {
+                    std::cout << "Se hicieron: " << g_ciclos << " ciclos para nular una reserva" << std::endl;
+                    std::cout << "Los objetos creados ocupan: " << g_tamano << " bytes" << std::endl;
                 }
                 break;
             case 2:
@@ -1406,7 +1449,13 @@ void zona_huesped(Fecha *fecha_sistema)
                     Reservas->insert(codigo_reserva, reserva);
                     huesped_user->mostrar_reserva_huesped(reserva);
                     update_reservas = true;
+                    std::cout << "Se hicieron: " << g_ciclos << " ciclos para crear una reserva" << std::endl;
+                    std::cout << "Los objetos creados hasta el momento ocupan: " << g_tamano << " bytes" << std::endl;
+                } else {
+                    std::cout << "Se hicieron: " << g_ciclos << " ciclos para crear una reserva" << std::endl;
+                    std::cout << "Los objetos creados ocupan: " << g_tamano << " bytes" << std::endl;
                 }
+                g_ciclos = 0;
                 break;
             case 3:
                 std::cout << "Saliendo..." << std::endl;
@@ -1419,25 +1468,34 @@ void zona_huesped(Fecha *fecha_sistema)
     
     if (Anfitriones != nullptr) {
         Anfitriones->clear_values();
+        std::cout << "Se hicieron: " << g_ciclos << " ciclos para liberar memoria de anfitriones" << std::endl;
+        g_ciclos = 0;
         delete Anfitriones;
     }
 
     if (Alojamientos != nullptr) {
         Alojamientos->clear_values();
+        std::cout << "Se hicieron: " << g_ciclos << " ciclos para liberar memoria de alojamientos" << std::endl;
+        g_ciclos = 0;
         delete Alojamientos;
     }
 
     if (update_reservas) {
         escribir_reservas(Reservas, RESERVAS_FILE, num_reservas, codigo_reserva);
         std::cout << "Reservas actualizadas." << std::endl;
+        std::cout << "Se hicieron: " << g_ciclos << " ciclos para guardar reservas" << std::endl;
+        g_ciclos = 0;
     }
 
     if (Reservas != nullptr) {
         Reservas->clear_values();
+        std::cout << "Se hicieron: " << g_ciclos << " ciclos para liberar memoria de reservas" << std::endl;
         delete Reservas;
+        g_ciclos = 0;
     }
 
     delete huesped_user; // Liberar memoria del huésped
+    std::cout << "Se eliminaron los objetos de memoria" << std::endl;
 }
 
 void app_main() 
@@ -1447,25 +1505,22 @@ void app_main()
     obtener_fecha_actual(fecha, LONG_FECHA_CADENA + 1);
     std::cout << "Fecha del sistema: " << fecha << std::endl;
     fecha_sistema->cargar_desde_cadena(fecha);
-
-    //zona_anfitrion(fecha_sistema);
-
-    zona_huesped(fecha_sistema);
-    /*
     uint8_t opc = 0;
-    std::cout << "Bienvenido a la aplicación de reservas." << std::endl;
-    std::cout << "Seleccione su perfil:\n1. Huesped\n2. Anfitrion\n3. Salir" << std::endl;
-    std::cin >> opc;
-    opc = opc - '0'; // Convertir al numerito :)
-
-    switch (opc) {
+    
+    do {
+        opc = 0;
+        std::cout << "Bienvenido a la aplicación de reservas." << std::endl;
+        std::cout << "Seleccione su perfil:\n1. Huesped\n2. Anfitrion\n3. Salir" << std::endl;
+        get_int_8(opc);
+        opc = opc - '0'; // Convertir al numerito :)
+        switch (opc) {
         case 1:
             std::cout << "Bienvenido Huesped" << std::endl;
-            zona_huesped();
+            zona_huesped(fecha_sistema);
             break;
         case 2:
             std::cout << "Bienvenido Anfitrion" << std::endl;
-            zona_anfitrion();
+            zona_anfitrion(fecha_sistema);
             break;
         case 3:
             std::cout << "Saliendo..." << std::endl;
@@ -1473,6 +1528,7 @@ void app_main()
         default:
             std::cout << "Opción no válida." << std::endl;
             return;
-    }*/
+        }
+    } while (opc < 1 || opc > 3);
     delete fecha_sistema;
 }

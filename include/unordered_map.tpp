@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "unordered_map.hpp"
+#include "performance.hpp"
 #define RESIZE(size) ((size/(0.75)) + 1) //Ya que no hacemos rehashing, se redimensiona la tabla hash al 75% de su tamaño original.
 
 /**
@@ -11,10 +12,10 @@
  */
 template <typename Key, typename Value>
 Unordered_Map<Key, Value>::Unordered_Map(size_t size)
-    : m_size(RESIZE(size)),
-      m_count(0)
+    : m_size(RESIZE(size))
 {
     m_table = new key_value_pair*[m_size];
+    g_tamano += sizeof(key_value_pair*) * m_size;
     if (m_table == nullptr) {
         throw std::bad_alloc();
         return;
@@ -23,6 +24,7 @@ Unordered_Map<Key, Value>::Unordered_Map(size_t size)
     // Inicializa la tabla hash a nullptr
     for (size_t i = 0; i < m_size; ++i) {
         m_table[i] = nullptr;
+        g_ciclos++;
     }
 }
 
@@ -38,6 +40,7 @@ Unordered_Map<Key, Value>::~Unordered_Map()
         while (current != nullptr) {
             key_value_pair* to_delete = current;
             current = current->next;
+            g_ciclos++;
             delete to_delete;
         }
     }
@@ -53,17 +56,15 @@ Unordered_Map<Key, Value>::~Unordered_Map()
 template <typename Key, typename Value>
 void Unordered_Map<Key, Value>::clear_values() 
 {
-    size_t iters = 0;
     for (size_t i = 0; i < m_size; ++i) {
         key_value_pair* current = m_table[i];
         while (current != nullptr) {
-            iters++;
             delete current->value;
             current->value = nullptr;
             current = current->next;
+            g_ciclos++;
         }
     }
-    std::cout << "Eliminar todos los valores del mapa ocupó " << iters << " iteraciones." << std::endl;
 }
 
 /**
@@ -87,13 +88,13 @@ void Unordered_Map<Key, Value>::insert(const Key& key, Value *value)
             return;
         }
         current = current->next;
+        g_ciclos++;
     }
 
     // Si no se encontró, agrega un nuevo nodo al principio de la lista
     key_value_pair* new_pair = new key_value_pair(key, value);
     new_pair->next = m_table[index];
     m_table[index] = new_pair;
-    m_count++;
 }
 
 /**
@@ -113,6 +114,7 @@ Value* Unordered_Map<Key, Value>::find(const Key& key)
             return current->value;
         }
         current = current->next;
+        g_ciclos++;
     }
     
     return nullptr;
@@ -134,6 +136,7 @@ Value *Unordered_Map<Key, Value>::erase(const Key& key)
     key_value_pair* previous = nullptr;
     Value *value = nullptr; // Inicializa el puntero a nullptr
     while (current != nullptr) {
+        g_ciclos++;
         if (current->key == key) {
             if (previous == nullptr) {
                 // Si no tiene un elemento anterior, significa que es el primer elemento de la lista
@@ -143,8 +146,8 @@ Value *Unordered_Map<Key, Value>::erase(const Key& key)
                 previous->next = current->next;
             }
             value = current->value; // Guarda el valor antes de eliminar
+            g_tamano -= sizeof(value);
             delete current;
-            m_count--;
             return value;
         }
         previous = current;
@@ -165,7 +168,7 @@ size_t Unordered_Map<Key, Value>::hash_fuction(const Key& key) const
     size_t hash_value = 5381; ///< Valor inicial del hash (un número primo utilizado como semilla).
 
     const uint8_t* key_bytes = reinterpret_cast<const uint8_t*>(&key);
-    for (size_t i = 0; i < sizeof(Key); ++i)
+    for (size_t i = 0; i < sizeof(Key); ++i, g_ciclos++)
         hash_value = ((hash_value << 5) + hash_value) + key_bytes[i]; // Fórmula djb2: hash * 33 + c
     
     return hash_value % m_size; // Retorna el índice en la tabla
@@ -175,39 +178,19 @@ template <typename Key, typename Value>
 
 size_t Unordered_Map<Key, Value>::info_map() const
 {
-    size_t total = 0;
-
-    // Tabla de punteros
-    total += sizeof(key_value_pair*) * m_size;
-
-    // Nodos key_value_pair + Objetos Value
-    for (size_t i = 0; i < m_size; ++i) {
-        key_value_pair* current = m_table[i];
-        while (current != nullptr) {
-            total += sizeof(key_value_pair); // Nodo
-            total += sizeof(Value);          // Objeto apuntado
-            current = current->next;
-        }
-    }
-
-    total += sizeof(m_size);
-    total += sizeof(m_count);
-
-    return total;
+    return sizeof(*this);
 }
 
 template <typename Key, typename Value>
-size_t Unordered_Map<Key, Value>::for_each(void (*callback)(Key, Value*, void*), void *data) 
+void Unordered_Map<Key, Value>::for_each(void (*callback)(Key, Value*, void*), void *data) 
 {
-    size_t iters = 0;
     for (size_t i = 0; i < m_size; ++i) {
         key_value_pair* current = m_table[i];
         while (current != nullptr) {
             callback(current->key, current->value, data);
             current = current->next;
-            iters++;
+            g_ciclos++;
         }
     }
-    return iters;
 }
 #endif

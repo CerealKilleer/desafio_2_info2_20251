@@ -12,6 +12,7 @@
  #include <string>
  #include <cstring>
  #include <iostream>
+ #include "performance.hpp"
 
  #define LOG_SUCCESS(fn, msg) std::cout << "[Huesped/" << fn << "]: " << msg << std::endl
  #define LOG_ERROR(fn, msg) std::cerr << "[Huesped/" << fn << "]: " << msg << std::endl
@@ -185,6 +186,7 @@ bool Huesped::tengo_reservas(Fecha *fecha_inicio, Fecha *fecha_fin)
         if (*(reserva->get_fecha_entrada()) < *fecha_fin && *(reserva->get_fecha_salida()) > *fecha_inicio)
             return true;
         current = m_reservas->get_next(current);
+        g_ciclos++;
     }
     return false;
 }

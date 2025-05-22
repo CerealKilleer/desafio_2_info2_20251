@@ -35,7 +35,7 @@ class Unordered_Map {
 
         key_value_pair **m_table; ///< Tabla hash que contiene los pares clave-valor.
         size_t m_size; ///< Tamaño actual de la tabla hash.
-        size_t m_count; ///< Contador de elementos en la tabla hash.
+    
         /**
          * @brief Función hash que calcula el índice para una clave utilizando el algoritmo djb2.
          * 
@@ -104,9 +104,8 @@ class Unordered_Map {
          * 
          * @param callback Función que se aplicará a cada par clave-valor.
          * @param data Datos adicionales que se pasarán a la función callback.
-         * @return El número de elementos procesados.
          */
-        size_t for_each(void (*callback)(Key, Value*, void*), void *data);
+        void for_each(void (*callback)(Key, Value*, void*), void *data);
 };
 
 #include "unordered_map.tpp"

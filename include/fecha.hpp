@@ -118,7 +118,7 @@ public:
      * @param noches Número de noches (días) a sumar.
      * @return Nueva fecha resultante.
      */
-    Fecha *sumar_noches(uint16_t noches, size_t &cnt) const;
+    Fecha *sumar_noches(uint16_t noches) const;
 
     /**
      * @brief Muestra la fecha en formato "DD/MM/AAAA".

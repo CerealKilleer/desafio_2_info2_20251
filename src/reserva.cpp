@@ -151,14 +151,28 @@ const Fecha *Reserva::get_fecha_salida() const
 }
 
 /**
+ * @brief Obtiene el tamaño total en memoria de un objeto Reserva.
+ * 
+ * @return Tamaño total en bytes ocupado por el objeto Reserva.
+ */
+
+size_t Reserva::get_size() const {
+    size_t total_size = sizeof(Reserva);
+    total_size += m_fecha_entrada->get_size();
+    total_size += m_fecha_salida->get_size();
+    total_size += m_fecha_pago->get_size();
+    total_size += strlen(m_anotaciones) + 1;
+    return total_size;
+}
+/**
  * @brief Destructor de la clase Reserva.
  * 
  * Libera la memoria ocupada por los atributos de la clase.
  */
 Reserva::~Reserva()
 {
-    delete[] m_fecha_entrada;
-    delete[] m_fecha_pago;
-    delete[] m_fecha_salida;
+    delete m_fecha_entrada;
+    delete m_fecha_pago;
+    delete m_fecha_salida;
     delete[] m_anotaciones;
 }

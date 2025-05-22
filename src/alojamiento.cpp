@@ -225,22 +225,24 @@ float Alojamiento::get_precio() const
 
 bool Alojamiento::eliminar_reserva(uint32_t codigo_reserva) 
 {
-    size_t cnt = 0;
     Node<Reserva*>* current = m_reservas->get_head();
     while (current != nullptr) {
-        cnt++;
+        g_ciclos++;
         Reserva* reserva = current->data;
         if (reserva->get_codigo_reserva() == codigo_reserva) {
             m_reservas->remove(reserva);
-            LOG_SUCCESS("eliminar_reserva", "La operación tomó: " + std::to_string(cnt) + " ciclos");
             return true;
         }
         current = m_reservas->get_next(current);
     }
-    LOG_SUCCESS("eliminar_reserva", "La operación tomó: " + std::to_string(cnt) + " ciclos");
+    
     return false;
 }
 
+size_t Alojamiento::get_size() const 
+{
+    return sizeof(*this);
+}
 
 // Destructor
 Alojamiento::~Alojamiento() 

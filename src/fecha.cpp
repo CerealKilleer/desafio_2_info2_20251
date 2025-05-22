@@ -3,7 +3,7 @@
 #include <cctype>
 #include <cstring>
 #include <iostream>
-
+#include "performance.hpp"
 /**
  * @brief Clase para manejar fechas con validación y operaciones básicas.
  */
@@ -93,6 +93,7 @@ bool Fecha::cargar_desde_cadena(const char* cadena)
         } else {
             if (!std::isdigit(cadena[i])) return false;
         }
+        g_ciclos++;
     }
 
     uint8_t d = (cadena[0] - '0') * 10 + (cadena[1] - '0');
@@ -179,11 +180,10 @@ void Fecha::mostrar_fecha(const Fecha& fecha)
 /**
  * @brief Suma un número dado de noches a la fecha actual, devolviendo una nueva fecha.
  * 
- * @param noches Número de noches a sumar.
  * @return Fecha* Puntero a una nueva instancia de Fecha con la fecha resultante.
  *               El usuario es responsable de liberar la memoria.
  */
-Fecha* Fecha::sumar_noches(uint16_t noches, size_t &cnt) const 
+Fecha* Fecha::sumar_noches(uint16_t noches) const 
 {
     uint8_t d = dia, m = mes;
     int16_t a = anio;
@@ -203,8 +203,8 @@ Fecha* Fecha::sumar_noches(uint16_t noches, size_t &cnt) const
                 ++a;
             }
         }
-        cnt++;
-    }
+        g_ciclos++;
+    }   
 
     Fecha* nueva = new Fecha();
     nueva->set_fecha(d, m, a);

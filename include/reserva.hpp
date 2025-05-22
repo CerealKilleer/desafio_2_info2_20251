@@ -106,6 +106,14 @@ public:
      * @brief Muestra la información de la reserva.
      */
     void mostrar() const;
+
+    /**
+     * @brief Obtiene el tamaño total en memoria de un objeto Reserva.
+     * 
+     * @return Tamaño total en bytes ocupado por el objeto Reserva.
+     */
+
+    size_t get_size() const;
 };
 
 #endif

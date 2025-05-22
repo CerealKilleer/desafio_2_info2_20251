@@ -116,7 +116,12 @@ public:
      * @return true si la reserva fue eliminada, false en caso contrario.
      */
     bool eliminar_reserva(uint32_t codigo_reserva);
-
+    
+    /**
+     * @brief Obtiene el nombre del alojamiento.
+     * @return Nombre del alojamiento.
+     */
+    size_t get_size() const;
     /**
      * @brief Destructor.
      * 
