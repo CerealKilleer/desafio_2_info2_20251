@@ -84,8 +84,8 @@ bool Fecha::set_fecha(uint8_t d, uint8_t m, int16_t a)
  */
 bool Fecha::cargar_desde_cadena(const char* cadena) 
 {
+    g_strlen_cnt++;
     if (!cadena || std::strlen(cadena) != LONG_FECHA_CADENA) {
-        g_strlen_cnt++;
         return false;
     }
         
@@ -94,8 +94,8 @@ bool Fecha::cargar_desde_cadena(const char* cadena)
             if (cadena[i] != '/') 
                 return false;
         } else {
+            g_is_digit_cnt++;
             if (!std::isdigit(cadena[i])) {
-                g_is_digit_cnt++;
                 return false;
             }
         }

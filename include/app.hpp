@@ -17,6 +17,7 @@
 #define ESTA_ACTIVA(fin, sistema) (fin > sistema) // Verifica si la reserva está activa
 #define MAX_NOCHES_RESERVA 365
 #define LONG_ANOTACIONES 1000
+#define DEFAULT_NUMERO_RESERVAS 10
 #include <iostream>
 #include <fstream>
 #include <cstring>

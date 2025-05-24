@@ -40,7 +40,8 @@ bool Linked_List<T>::remove(T value) {
      * @brief Elimina el primer nodo que contiene el dato especificado.
      * @param value Dato a eliminar (comparación por puntero).
      */
-    if (!head) return true;
+    if (!head) 
+        return true;
 
     if (head->data == value) {
         Node<T>* temp = head;
