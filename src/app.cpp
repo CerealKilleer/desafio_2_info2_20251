@@ -9,9 +9,23 @@
 #include "app.hpp"
 #include "performance.hpp"
 /** Variables globales para medir ciclos y tamaño de objetos en memoria */
-uint64_t g_ciclos = 0; ///< Contador de ciclos
-uint64_t g_tamano = 0; ///< Tamaño total de objetos en memoria
-
+uint32_t g_ciclos = 0; ///< Contador de ciclos
+uint32_t g_tamano = 0; ///< Tamaño total de objetos en memoria
+uint32_t g_strlen_cnt = 0; ///< Contador de strlen
+uint32_t g_memcpy_cnt = 0; ///< Contador de memcpy
+uint32_t g_memcmp_cnt = 0; ///< Contador de memcmp
+uint32_t g_is_digit_cnt = 0; ///< Contador de isdigit
+uint32_t g_getline_cnt = 0; ///< Contador de getline
+uint32_t g_string_find_cnt = 0; ///< Contador de string::find
+uint32_t g_string_substr_cnt = 0; ///< Contador de string::substr
+uint32_t g_std_n_pos_cnt = 0; ///< Contador de std::npos
+uint32_t g_c_string_cnt = 0; ///< Contador de c_str
+uint32_t g_stoi_cnt = 0; ///< Contador de stoi
+uint32_t g_stof_cnt = 0; ///< Contador de stof
+uint32_t g_stoull_cnt = 0; ///< Contador de stoull
+uint32_t g_strcmp_cnt = 0; ///< Contador de memcmp
+uint32_t g_sprintf_cnt = 0; ///< Contador de sprintf
+uint32_t g_string_legnth_cnt = 0; ///< Contador de string::length
 /**
  * @brief Permite al usuario ingresar un número entero sin signo de 16 bits.
  * @param numero Referencia al número entero a almacenar.
@@ -109,11 +123,65 @@ static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename,
                                         size_t &num_reservas, uint32_t &codigo_reserva);
 
 
+void imprimir_contadores(const char* nombre_funcionalidad) {
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función strlen con complejidad computacional O(n) "
+              << g_strlen_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función memcpy con complejidad computacional O(n) "
+              << g_memcpy_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función memcmp con complejidad computacional O(n) "
+              << g_memcmp_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función isdigit con complejidad computacional O(1) "
+              << g_is_digit_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función getline con complejidad computacional O(n) "
+              << g_getline_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función string::find con complejidad computacional O(n) "
+              << g_string_find_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función string::substr con complejidad computacional O(n) "
+              << g_string_substr_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función std::npos con complejidad computacional O(1) "
+              << g_std_n_pos_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función c_str con complejidad computacional O(1) "
+              << g_c_string_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función stoi con complejidad computacional O(n) "
+              << g_stoi_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función stof con complejidad computacional O(n) "
+              << g_stof_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función stoull con complejidad computacional O(n) "
+                << g_stoull_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función strcmp con complejidad computacional O(n) "
+                << g_strcmp_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función sprintf con complejidad computacional O(n) "
+                << g_sprintf_cnt << " veces\n";
+    std::cout << "Para la funcionalidad: " << nombre_funcionalidad << " se llamó a la función string::length con complejidad computacional O(1) "
+                << g_string_legnth_cnt << " veces\n";
+
+    g_strlen_cnt = 0;
+    g_memcpy_cnt = 0;
+    g_memcmp_cnt = 0;
+    g_is_digit_cnt = 0;
+    g_getline_cnt = 0;
+    g_string_find_cnt = 0;
+    g_string_substr_cnt = 0;
+    g_std_n_pos_cnt = 0;
+    g_c_string_cnt = 0;
+    g_stoi_cnt = 0;
+    g_stof_cnt = 0;
+    g_stoull_cnt = 0;
+    g_strcmp_cnt = 0;
+    g_sprintf_cnt = 0;
+    g_string_legnth_cnt = 0;
+    g_ciclos = 0;
+}
+
+
 static void obtener_fecha_actual(char* buffer, size_t buffer_size) 
 {
     std::time_t tiempo_actual = std::time(nullptr);
     std::tm* tiempo_local = std::localtime(&tiempo_actual);
     std::strftime(buffer, buffer_size, "%d/%m/%Y", tiempo_local);
+    std::cout << "Se llamó a la función std::time 1 vez, complejidad O(1)" << std::endl; 
+    std::cout << "Se llamó a la función std::localtime 1 vez, complejidad O(1)" << std::endl; 
+    std::cout << "Se llamó a la función std::strftime 1 vez, complejidad O(n)" << std::endl; 
 }
 
 /**
@@ -123,19 +191,15 @@ static void obtener_fecha_actual(char* buffer, size_t buffer_size)
 void get_float(float &numero)
 {
     numero = 0.0f;
-    std::string input;
-    std::getline(std::cin, input);
+    std::cin >> numero;
 
-    if (input.empty()) {
+    if (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         numero = 0.0f;
-        return;
+    } else {
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
-
-    std::stringstream ss(input);
-    ss >> numero;
-
-    if (ss.fail())
-        numero = 0.0f;
 }
 
 /**
@@ -146,19 +210,15 @@ void get_float(float &numero)
 void get_int(uint32_t &numero)
 {
     numero = 0;
-    std::string input;
-    std::getline(std::cin, input);
+    std::cin >> numero;
 
-    if (input.empty()) {
+    if (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         numero = 0;
-        return;
+    } else {
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
-
-    std::stringstream ss(input);
-    ss >> numero;
-
-    if (ss.fail())
-        numero = 0.0f;
 }
 
 /**
@@ -169,19 +229,15 @@ void get_int(uint32_t &numero)
 void get_int_16(uint16_t &numero)
 {
     numero = 0;
-    std::string input;
-    std::getline(std::cin, input);
+    std::cin >> numero;
 
-    if (input.empty()) {
+    if (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         numero = 0;
-        return;
+    } else {
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
-
-    std::stringstream ss(input);
-    ss >> numero;
-
-    if (ss.fail())
-        numero = 0;
 }
 
 /**
@@ -191,19 +247,15 @@ void get_int_16(uint16_t &numero)
 void get_int_8(uint8_t &numero)
 {
     numero = 0;
-    std::string input;
-    std::getline(std::cin, input);
+    std::cin >> numero;
 
-    if (input.empty()) {
+    if (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         numero = 0;
-        return;
+    } else {
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
-
-    std::stringstream ss(input);
-    ss >> numero;
-
-    if (ss.fail())
-        numero = 0;
 }
 
 /**
@@ -221,13 +273,16 @@ static uint32_t dividir_linea(const std::string &linea, std::string *campos, uin
 
     while (cnt < max_campos) {
         size_t pos_fin = linea.find(';', pos_ini);
+        g_string_find_cnt++;
         if (pos_fin == std::string::npos) {
             campos[cnt++] = linea.substr(pos_ini);
+            g_string_substr_cnt++;
             g_ciclos++;
             break;
         } else {
             campos[cnt++] = linea.substr(pos_ini, pos_fin - pos_ini);
             pos_ini = pos_fin + 1;
+            g_string_substr_cnt++;
             g_ciclos++;
         }
     }
@@ -276,7 +331,7 @@ static Unordered_Map<uint32_t, Alojamiento>* leer_alojamientos(const char* filen
 
     std::string campos[CAMPOS_MAX_ALOJAMIENTO];
 
-    for (size_t alojamiento = 0; std::getline(archivo, linea); alojamiento++, g_ciclos++) {
+    for (size_t alojamiento = 0; std::getline(archivo, linea); alojamiento++, g_ciclos++, g_getline_cnt++) {
         uint8_t campos_extraidos = dividir_linea(linea, campos, CAMPOS_MAX_ALOJAMIENTO);
         if (campos_extraidos < CAMPOS_MAX_ALOJAMIENTO) {
             continue;
@@ -296,6 +351,9 @@ static Unordered_Map<uint32_t, Alojamiento>* leer_alojamientos(const char* filen
             float precio = std::stof(campos[7]);
             const char* amenidades = campos[8].c_str();
             uint64_t anfitrion_doc = anfitrion->get_documento();
+            g_c_string_cnt += 5;
+            g_stoi_cnt += 2;
+            g_stoull_cnt++;
             if (documento_anfitrion == anfitrion_doc) {
                 Alojamiento *alojamiento = new Alojamiento(codigo_alojamiento, nombre, documento_anfitrion,
                                                           direccion, departamento, municipio, tipo, precio, amenidades);
@@ -353,7 +411,7 @@ static Unordered_Map<uint32_t, Alojamiento>* cargar_alojamientos_completos(const
     
     std::string campos[CAMPOS_MAX_ALOJAMIENTO];
 
-    for (size_t alojamiento = 0; std::getline(archivo, linea); alojamiento++) {
+    for (size_t alojamiento = 0; std::getline(archivo, linea); alojamiento++, g_getline_cnt++) {
         uint8_t campos_extraidos = dividir_linea(linea, campos, CAMPOS_MAX_ALOJAMIENTO);
         if (campos_extraidos < CAMPOS_MAX_ALOJAMIENTO) {
             std::cerr << "Línea con menos campos de los esperados: " << linea << std::endl;
@@ -382,6 +440,9 @@ static Unordered_Map<uint32_t, Alojamiento>* cargar_alojamientos_completos(const
                 num_alojamientos++;
                 g_tamano += alojamiento->get_size();
             }
+            g_c_string_cnt += 5;
+            g_stoi_cnt++;
+            g_stoull_cnt++;
             g_ciclos++;
         } catch (const std::exception& e) {
             std::cerr << "Error al convertir campos en línea: " << linea << std::endl;
@@ -433,7 +494,7 @@ static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename,
     }
     std::string campos[CAMPOS_MAX_RESERVA];
 
-    for (size_t reserva = 0; std::getline(archivo, linea); reserva++, g_ciclos++) {
+    for (size_t reserva = 0; std::getline(archivo, linea); reserva++, g_ciclos++, g_getline_cnt++) {
         uint8_t campos_extraidos = dividir_linea(linea, campos, CAMPOS_MAX_RESERVA);
     
         if (campos_extraidos < CAMPOS_MAX_RESERVA) {
@@ -459,7 +520,10 @@ static Unordered_Map<uint32_t, Reserva> *leer_reservas(const char* filename,
             Fecha *fecha_pago_obj = new Fecha();
             fecha_pago_obj->cargar_desde_cadena(fecha_pago);
             Fecha *fecha_final_obj = fecha_inicio_obj->sumar_noches(duracion);
-
+            g_c_string_cnt += 3;
+            g_stoi_cnt += 3;
+            g_stoull_cnt++;
+            g_stof_cnt++;
             Reserva *reserva = new Reserva(fecha_inicio_obj, fecha_final_obj, duracion, codigo_reserva,
                                             codigo_alojamiento, documento_huesped, metodo_pago,
                                             fecha_pago_obj, monto, anotaciones);
@@ -518,6 +582,7 @@ static Huesped * buscar_huesped(const char *huesped_file, uint64_t documento, ch
     archivo >> size;
 
     while (getline(archivo, linea)) {
+        g_getline_cnt++;
         g_ciclos++;
         uint8_t campos_extraidos = dividir_linea(linea, campos, CAMPOS_MAX_HUESPED);
         if (campos_extraidos < CAMPOS_MAX_HUESPED) {
@@ -530,12 +595,19 @@ static Huesped * buscar_huesped(const char *huesped_file, uint64_t documento, ch
         memcpy(pass, campos[2].c_str(), MAX_PASSWORD_LENGTH);
         antiguedad = static_cast<uint16_t>(std::stoi(campos[3]));
         puntuacion = std::stof(campos[4]);
+        g_c_string_cnt++;
+        g_memcpy_cnt++;
+        g_stoull_cnt++;
+        g_stoi_cnt++;
+        g_stof_cnt++;
+        g_strcmp_cnt++;
 
         if (doc == documento && strcmp(pass, password) == 0) {
             Huesped *huesped = new Huesped(doc, pass, nombre_huesped.c_str(), antiguedad, puntuacion);
             g_tamano += huesped->get_obj_size();
             return huesped; //Memoria dinamica, la libera el llamador
         }
+        
     }
     archivo.close();
     return nullptr;
@@ -568,12 +640,15 @@ static Anfitrion * buscar_anfitrion(const char *anfitrion_file, uint64_t documen
 
     while (archivo >> doc >> pass >> antiguedad >> puntuacion) {
         size_t len = strlen(pass) + 1;
+        g_strlen_cnt++;
+        g_memcmp_cnt++;
+        g_ciclos++;
         if (doc == documento && memcmp(pass, password, len) == 0) {
             Anfitrion *anfitrion = new Anfitrion(doc, pass, antiguedad, puntuacion);
+            g_tamano += anfitrion->get_obj_size();
             return anfitrion; //Memoria dinamica, la libera el llamador
         }
-        g_ciclos++;
-        g_tamano += sizeof(Anfitrion);
+
     }
     archivo.close();
     return nullptr;
@@ -610,8 +685,9 @@ static Unordered_Map<uint64_t, Anfitrion> *cargar_anfitriones(const char *anfitr
         size_t len = strlen(pass) + 1;
         Anfitrion *anfitrion = new Anfitrion(doc, pass, antiguedad, puntuacion);
         anfitriones->insert(doc, anfitrion);
-        g_ciclos++;
         g_tamano += anfitrion->get_obj_size();
+        g_strlen_cnt++;
+        g_ciclos++;
     }
 
     archivo.close();
@@ -682,7 +758,6 @@ static void escribir_cancelaciones(Reserva *reserva, const char *filename)
     archivo << reserva->get_codigo_alojamiento() << ";";
     archivo << reserva->get_documento_huesped() << ";";
     archivo << reserva->get_metodo_pago() << ";";
-
     reserva->get_fecha_pago()->a_cadena(buffer);
     archivo << buffer << ";";
     archivo << reserva->get_monto() << ";";
@@ -756,6 +831,7 @@ void zona_anfitrion(Fecha *fecha_sistema)
         std::cerr << "Error al iniciar sesión." << std::endl;
         std::cout << "Se hicieron " << g_ciclos << " ciclos para iniciar sesión" << std::endl;
         std::cout << "Se usaron " << g_tamano << " bytes de memoria para iniciar sesión" << std::endl;
+        imprimir_contadores("Iniciar sesión");
         return;
     }
     g_ciclos = 0;
@@ -772,6 +848,7 @@ void zona_anfitrion(Fecha *fecha_sistema)
 
     Alojamientos = leer_alojamientos(ALOJAMIENTO_FILE, anfitrion_user);
     Reservas = leer_reservas(RESERVAS_FILE, Alojamientos, nullptr, num_reservas, codigo_reserva);
+    imprimir_contadores("Cargar datos en memoria");
     std::cout << "Se hicieron " << g_ciclos << " ciclos cargar los datos en memoria" << std::endl;
     std::cout << "Se usaron " << g_tamano << " bytes de memoria" << std::endl;
     g_ciclos = 0;
@@ -803,9 +880,9 @@ void zona_anfitrion(Fecha *fecha_sistema)
                     std::cerr << "Revise el formato de las fechas" << std::endl;
                 delete fecha_inicio_obj;
                 delete fecha_fin_obj;
+                imprimir_contadores("Mostrar reservas");
                 std::cout << "Se hicieron " << g_ciclos << " ciclos para mostrar las reservas" << std::endl;
                 std::cout << "Los objetos pesan " << g_tamano << " bytes de memoria" << std::endl;
-                g_ciclos = 0;
                 break;
             case 2:
                 std::cout << "Anular reservación" << std::endl;
@@ -831,14 +908,14 @@ void zona_anfitrion(Fecha *fecha_sistema)
                     std::cout << "Se hicieron " << g_ciclos << " ciclos para anular la reserva" << std::endl;
                     std::cout << "Los objetos pesan " << g_tamano << " bytes de memoria" << std::endl;
                 }
-                g_ciclos = 0;
+                imprimir_contadores("Anular reserva");
                 break;
             case 3:
                 std::cout << "Crear histórico de reservas" << std::endl;
                 update_reservas = crear_historico_reservas(Reservas, HISTORICO_FILE, anfitrion_user, fecha_actual, num_reservas);
+                imprimir_contadores("Crear histórico de reservas");
                 std::cout << "Se hicieron " << g_ciclos << " ciclos para crear el histórico" << std::endl;
                 std::cout << "Los objetos pesan " << g_tamano << " bytes de memoria" << std::endl;
-                g_ciclos = 0;
                 break;
             case 4:
                 std::cout << "Cambiar fecha del sistema" << std::endl;
@@ -850,9 +927,9 @@ void zona_anfitrion(Fecha *fecha_sistema)
                 } else {
                     std::cerr << "Error al cargar la fecha." << std::endl;
                 }
+                imprimir_contadores("Cambiar fecha del sistema");
                 std::cout << "Se hicieron " << g_ciclos << " ciclos para cambiar la fecha" << std::endl;
                 std::cout << "Los objetos en memoria pesan " << g_tamano << " bytes de memoria" << std::endl;
-                g_ciclos = 0;
                 break;
             case 5:
                 std::cout << "Saliendo..." << std::endl;
@@ -1202,6 +1279,7 @@ static Reserva * crear_reservacion(Unordered_Map<uint32_t, Alojamiento> *Alojami
     //Se aplica el filtro
     std::cout << "Ingrese el municipio: ";
     getline(std::cin, municipio);
+    g_string_legnth_cnt++;
     params.inicio = inicio_reservacion;
     params.fin = finalizacion_reservacion;
     params.mpo = &municipio;
@@ -1297,16 +1375,19 @@ Reserva *agregar_reserva(Alojamiento *aloj, uint32_t codigo_reserva, uint16_t du
     do {
         std::cout << "Escriba la fecha de pago (dd/mm/aaaa): ";
         std::cin.getline(fch_pago, LONG_FECHA_CADENA + 1);
-        
+        g_getline_cnt++;
         bool valida = fecha_pago->cargar_desde_cadena(fch_pago);
     } while (!valida && (*fecha_pago > *sistema));
 
     do {
         std::cout << "Escriba sus anotaciones (1000 caracteres max): ";
         std::getline(std::cin, anotaciones);
+        g_getline_cnt++;
+        g_string_legnth_cnt++;
     } while (anotaciones.length() > 1000);
     
     const char *notas = anotaciones.c_str();
+    g_c_string_cnt++;
     codigo_reserva++;
 
     Reserva *reserva = new Reserva(fecha_entrada,fecha_salida, duracion,
@@ -1374,12 +1455,14 @@ void zona_huesped(Fecha *fecha_sistema)
     Huesped *huesped_user = nullptr;
     if (!iniciar_sesion_huesped(&huesped_user)) {
         std::cerr << "Error al iniciar sesión." << std::endl;
+        imprimir_contadores("Iniciar sesión");
         std::cout << "Se hicieron: " << g_ciclos << " ciclos para iniciar sesión" << std::endl;
         std::cout << "Los objetos creados ocupan: " << g_tamano << " bytes" << std::endl;
         g_ciclos = 0;
         g_tamano = 0;
         return;
     }
+    imprimir_contadores("Iniciar sesión");
     std::cout << "Se hicieron: " << g_ciclos << " ciclos para iniciar sesión" << std::endl;
     std::cout << "Los objetos en memoria ocupan: " << g_tamano << " bytes" << std::endl;
     g_ciclos = 0;
@@ -1399,6 +1482,7 @@ void zona_huesped(Fecha *fecha_sistema)
     Reservas = leer_reservas(RESERVAS_FILE, Alojamientos, huesped_user, num_reservas, codigo_reserva);
     g_tamano += (Anfitriones->info_map() + Alojamientos->info_map() + Reservas->info_map());
 
+    imprimir_contadores("Cargar datos");
     std::cout << "Se hicieron: " << g_ciclos << " ciclos para cargar los datos en memoria" << std::endl;
     g_ciclos = 0;
     std::cout << "Los objetos creados ocupan: " << g_tamano << " bytes" << std::endl;
@@ -1439,6 +1523,7 @@ void zona_huesped(Fecha *fecha_sistema)
                     std::cout << "Se hicieron: " << g_ciclos << " ciclos para nular una reserva" << std::endl;
                     std::cout << "Los objetos creados ocupan: " << g_tamano << " bytes" << std::endl;
                 }
+                imprimir_contadores("Anular reservación");
                 break;
             case 2:
                 std::cout << "Crear reservación" << std::endl;
@@ -1455,7 +1540,7 @@ void zona_huesped(Fecha *fecha_sistema)
                     std::cout << "Se hicieron: " << g_ciclos << " ciclos para crear una reserva" << std::endl;
                     std::cout << "Los objetos creados ocupan: " << g_tamano << " bytes" << std::endl;
                 }
-                g_ciclos = 0;
+                imprimir_contadores("Crear reservación");
                 break;
             case 3:
                 std::cout << "Saliendo..." << std::endl;
@@ -1505,6 +1590,7 @@ void app_main()
     obtener_fecha_actual(fecha, LONG_FECHA_CADENA + 1);
     std::cout << "Fecha del sistema: " << fecha << std::endl;
     fecha_sistema->cargar_desde_cadena(fecha);
+    imprimir_contadores("Cargar fecha del sistema");
     uint8_t opc = 0;
     
     do {

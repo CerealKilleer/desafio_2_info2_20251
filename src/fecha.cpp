@@ -84,14 +84,20 @@ bool Fecha::set_fecha(uint8_t d, uint8_t m, int16_t a)
  */
 bool Fecha::cargar_desde_cadena(const char* cadena) 
 {
-    if (!cadena || std::strlen(cadena) != LONG_FECHA_CADENA)
+    if (!cadena || std::strlen(cadena) != LONG_FECHA_CADENA) {
+        g_strlen_cnt++;
         return false;
-
+    }
+        
     for (int i = 0; i < LONG_FECHA_CADENA; ++i) {
         if (i == 2 || i == 5) {
-            if (cadena[i] != '/') return false;
+            if (cadena[i] != '/') 
+                return false;
         } else {
-            if (!std::isdigit(cadena[i])) return false;
+            if (!std::isdigit(cadena[i])) {
+                g_is_digit_cnt++;
+                return false;
+            }
         }
         g_ciclos++;
     }
@@ -114,6 +120,7 @@ bool Fecha::cargar_desde_cadena(const char* cadena)
 char *Fecha::a_cadena(char* destino) const 
 {
     std::sprintf(destino, "%02u/%02u/%04d", dia, mes, anio);
+    g_sprintf_cnt++;
     return destino;
 }
 
@@ -256,18 +263,18 @@ void Fecha::formato_legible() const {
  * @brief dia de la semana con formula de Zeller
  */
 uint8_t Fecha::dia_semana() const {
-    int d = dia;
-    int m = mes;
-    int y = anio;
+    uint8_t d = dia;
+    uint8_t m = mes;
+    uint16_t y = anio;
 
     if (m < 3) {
         m += 12;
         y -= 1;
     }
 
-    int k = y % 100;
-    int j = y / 100;
+    uint16_t k = y % 100;
+    uint16_t j = y / 100;
 
-    int h = (d + 13*(m + 1)/5 + k + k/4 + j/4 + 5*j) % 7;
+    uint16_t h = (d + 13*(m + 1)/5 + k + k/4 + j/4 + 5*j) % 7;
     return (h + 6) % 7;
 }

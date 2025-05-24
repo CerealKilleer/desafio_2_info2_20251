@@ -32,9 +32,12 @@ Reserva::Reserva(Fecha *fecha_entrada, Fecha *fecha_salida, uint16_t duracion,
 {
     if (notas != nullptr) {
         size_t len = strlen(notas) + 1;
+        g_strlen_cnt++;
         m_anotaciones = new char[len];
         if (m_anotaciones != nullptr) {
             memcpy(m_anotaciones, notas, len);
+            m_anotaciones[len - 1] = '\0';
+            g_memcpy_cnt++;
         }
     }
 }
@@ -75,11 +78,13 @@ void Reserva::mostrar() const
     std::cout << "Código de alojamiento: " << m_codigo_alojamiento << std::endl;
     std::cout << "Documento del huésped: " << m_documento_huesped << std::endl;
     std::cout << "Método de pago: " << ((m_metodo_pago == 'P') ? "PSE" : "T. Credito") << std::endl;
-    std::cout << "Fecha de entrada: " << 
-    m_fecha_entrada->a_cadena(fecha) << std::endl;
-    std::cout << "Fecha de salida: " << m_fecha_salida->a_cadena(fecha) << std::endl;
+    std::cout << "Fecha de entrada: ";
+    m_fecha_entrada->formato_legible();
+    std::cout << "Fecha de salida: ";
+    m_fecha_salida->formato_legible();
     std::cout << "Duración: " << m_duracion << " noches" << std::endl;
-    std::cout << "Fecha de pago: " << m_fecha_pago->a_cadena(fecha) << std::endl;
+    std::cout << "Fecha de pago: ";
+    m_fecha_pago->formato_legible();
     std::cout << "Monto pagado: " << m_monto << std::endl;
     std::cout << "Anotaciones: " << (m_anotaciones ? m_anotaciones : "(Ninguna)") << std::endl;
     std::cout << "------------*------------" << std::endl;
@@ -162,6 +167,7 @@ size_t Reserva::get_size() const {
     total_size += m_fecha_salida->get_size();
     total_size += m_fecha_pago->get_size();
     total_size += strlen(m_anotaciones) + 1;
+    g_strlen_cnt++;
     return total_size;
 }
 /**

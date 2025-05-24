@@ -72,6 +72,8 @@
         memcpy(m_password, password, len);
         m_password[len - 1] = '\0';
         m_reservas = new Linked_List<Reserva*>();
+        g_strlen_cnt += 3;
+        g_memcpy_cnt += 2;
  };
  
  /**

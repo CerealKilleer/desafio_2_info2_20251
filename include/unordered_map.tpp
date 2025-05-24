@@ -85,6 +85,7 @@ void Unordered_Map<Key, Value>::insert(const Key& key, Value *value)
         if (current->key == key) {
             delete current->value; // Libera el valor anterior
             current->value = value; // Asigna el nuevo valor
+            g_ciclos++;
             return;
         }
         current = current->next;
@@ -111,6 +112,7 @@ Value* Unordered_Map<Key, Value>::find(const Key& key)
     
     while (current != nullptr) {
         if (current->key == key) {
+            g_ciclos++;
             return current->value;
         }
         current = current->next;

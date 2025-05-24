@@ -41,6 +41,7 @@ Alojamiento::Alojamiento(uint32_t id, const char* nombre, uint64_t codigo_anfitr
     m_municipio = copy_data(municipio, len_municipio);
     m_amenidades = copy_data(amenidades, len_amenidades);
     m_reservas = new Linked_List<Reserva*>();
+    g_strlen_cnt += 5;
 }
 
 /**
@@ -69,6 +70,7 @@ char* Alojamiento::copy_data(const char* data, size_t len)
         return nullptr;
 
     memcpy(new_data, data, len);
+    g_memcpy_cnt++;
     return new_data;
 }
 
@@ -146,6 +148,7 @@ bool Alojamiento::es_candidato_reserva(const Fecha &desde, const Fecha &hasta, c
 {
     Node<Reserva*>* current = m_reservas->get_head();
     while (current != nullptr) {
+        g_ciclos++;
         Reserva* reserva = current->data;
         
         if (*(reserva->get_fecha_entrada()) < hasta && *(reserva->get_fecha_salida()) > desde)
@@ -154,8 +157,11 @@ bool Alojamiento::es_candidato_reserva(const Fecha &desde, const Fecha &hasta, c
         current = m_reservas->get_next(current);
     }
 
-    if (strcmp(m_municipio, mpo.c_str()) == 0)
+    if (strcmp(m_municipio, mpo.c_str()) == 0) {
+        g_c_string_cnt++;
+        g_strcmp_cnt++;
         return true;
+    }
     
     return false;
 }

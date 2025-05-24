@@ -51,9 +51,11 @@
             LOG_ERROR("Anfitrion", "Error al asignar memoria para la contraseña");
             return;
         }
-        strncpy(m_password, password, len);
+        memcpy(m_password, password, len);
         m_password[len - 1] = '\0';
         m_alojamientos = new Linked_List<Alojamiento*>();
+        g_strlen_cnt++; // Contador de strlen
+        g_memcpy_cnt++; // Contador de memcpy
  };
  
  /**
@@ -110,7 +112,7 @@
  { 
     size_t total_size = sizeof(*this); 
     total_size += strlen(m_password) + 1;
- 
+    g_strlen_cnt++; // Contador de strlen
     return total_size;
  }
 

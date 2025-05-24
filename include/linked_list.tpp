@@ -122,6 +122,7 @@ void Linked_List<T>::insert_sorted(T nuevo_elemento, bool (*comparador)(T, T))
     Node<T>* actual = head;
     while (actual->next && !comparador(nuevo_elemento, actual->next->data)) {
         actual = actual->next;
+        g_ciclos++;
     }
 
     nuevo->next = actual->next;
