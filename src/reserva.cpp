@@ -177,6 +177,7 @@ size_t Reserva::get_size() const {
  */
 Reserva::~Reserva()
 {
+    g_tamano -= this->get_size();
     delete m_fecha_entrada;
     delete m_fecha_pago;
     delete m_fecha_salida;

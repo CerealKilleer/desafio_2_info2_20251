@@ -41,9 +41,11 @@ Unordered_Map<Key, Value>::~Unordered_Map()
             key_value_pair* to_delete = current;
             current = current->next;
             g_ciclos++;
+            g_tamano -= sizeof(key_value_pair);
             delete to_delete;
         }
     }
+    g_tamano -= sizeof(key_value_pair*) * m_size;
     delete[] m_table;
     m_table = nullptr;
     std::cout << "Mapa destruido" << std::endl;
@@ -94,6 +96,7 @@ void Unordered_Map<Key, Value>::insert(const Key& key, Value *value)
 
     // Si no se encontró, agrega un nuevo nodo al principio de la lista
     key_value_pair* new_pair = new key_value_pair(key, value);
+    g_tamano += sizeof(key_value_pair);
     new_pair->next = m_table[index];
     m_table[index] = new_pair;
 }
@@ -148,7 +151,7 @@ Value *Unordered_Map<Key, Value>::erase(const Key& key)
                 previous->next = current->next;
             }
             value = current->value; // Guarda el valor antes de eliminar
-            g_tamano -= sizeof(value);
+            g_tamano -= sizeof(key_value_pair);
             delete current;
             return value;
         }
@@ -176,6 +179,11 @@ size_t Unordered_Map<Key, Value>::hash_fuction(const Key& key) const
     return hash_value % m_size; // Retorna el índice en la tabla
 }
 
+/**
+ * @brief Obtiene el tamaño de la tabla hash.
+ * 
+ * @return El tamaño de la tabla hash.
+ */
 template <typename Key, typename Value>
 
 size_t Unordered_Map<Key, Value>::info_map() const
@@ -183,6 +191,12 @@ size_t Unordered_Map<Key, Value>::info_map() const
     return sizeof(*this);
 }
 
+/**
+ * @brief Itera sobre todos los elementos de la tabla hash y aplica una función de callback a cada par clave-valor.
+ * 
+ * @param callback Función que se aplicará a cada par clave-valor.
+ * @param data Datos adicionales que se pasarán a la función de callback.
+ */
 template <typename Key, typename Value>
 void Unordered_Map<Key, Value>::for_each(void (*callback)(Key, Value*, void*), void *data) 
 {

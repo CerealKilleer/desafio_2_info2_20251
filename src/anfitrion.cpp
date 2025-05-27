@@ -198,6 +198,7 @@ void Anfitrion::mostrar_alojamientos(Fecha &desde, Fecha &hasta) const
 
 Anfitrion::~Anfitrion() 
 {
+    g_tamano -= this->get_obj_size();
     delete[] m_password;
     delete m_alojamientos;
     m_alojamientos = nullptr;

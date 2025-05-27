@@ -19,7 +19,6 @@ private:
     Fecha * m_fecha_pago;          ///< Fecha en que se realizó el pago.
     float m_monto;                ///< Monto total pagado.
     char * m_anotaciones;         ///< Anotaciones del huésped (máx. 1000 caracteres).
-    bool m_activa;               ///< Indica si la reserva está activa o no.
 
 public:
     /**
@@ -33,7 +32,6 @@ public:
      * @param fecha_pago Fecha del pago.
      * @param monto Monto del pago.
      * @param notas Anotaciones del huésped.
-     * @param activa Indica si la reserva está activa o no.
      */
     Reserva(Fecha *fecha_entrada, Fecha *salida, uint16_t duracion,
             uint32_t cod_reserva, uint32_t cod_alojamiento,
@@ -96,12 +94,6 @@ public:
     */
     const char* get_anotaciones() const;
     
-    /**
-     * @brief Verifica si la reserva está activa.
-     * @return true si la reserva está activa, false en caso contrario.
-     */
-    bool get_activa() const;
-
     /**
      * @brief Muestra la información de la reserva.
      */

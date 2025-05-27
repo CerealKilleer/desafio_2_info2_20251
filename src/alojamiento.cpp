@@ -247,12 +247,21 @@ bool Alojamiento::eliminar_reserva(uint32_t codigo_reserva)
 
 size_t Alojamiento::get_size() const 
 {
-    return sizeof(*this);
+    size_t total_size = sizeof(*this);
+    total_size += strlen(m_nombre) + 1;
+    total_size += strlen(m_direccion) + 1;
+    total_size += strlen(m_departamento) + 1;
+    total_size += strlen(m_municipio) + 1;
+    total_size += strlen(m_amenidades) + 1;
+    total_size += m_reservas->get_size() * sizeof(Reserva*);
+    g_strlen_cnt += 5;
+    return total_size;
 }
 
 // Destructor
 Alojamiento::~Alojamiento() 
 {
+    g_tamano -= this->get_size();
     delete[] m_nombre;
     delete[] m_direccion;
     delete[] m_departamento;

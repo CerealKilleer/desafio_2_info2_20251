@@ -128,7 +128,7 @@
   */
  size_t Huesped::get_obj_size() const 
  { 
-    size_t total_size = sizeof(Huesped); 
+    size_t total_size = sizeof(*this); 
     total_size += strlen(m_password) + 1;
  
     return total_size;
@@ -215,6 +215,7 @@ void Huesped::mostrar_reserva_huesped(Reserva *reserva)
 */
 Huesped::~Huesped() 
 {   
+    g_tamano -= get_obj_size();
     delete[] m_nombre;
     delete[] m_password;
     delete m_reservas;
