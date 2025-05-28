@@ -1,0 +1,16 @@
+15 15
+15/11/2023;4;1;1;10293847;P;01/11/2023;600000;Estuve muy cómodo, gracias.
+20/12/2023;2;2;3;56473829;T;10/12/2023;300000;Solo una noche, muy buena atención.
+31/12/2023;5;3;3;83726194;P;15/12/2023;900000;Comentario de prueba 3
+12/02/2024;3;4;5;19283746;T;01/02/2024;270000;Excelente para relajarse.
+28/03/2024;7;5;6;47586920;P;10/03/2024;910000;Muy buen lugar para desconectarse.
+12/06/2025;3;6;6;47586920;P;01/06/2025;390000;¿El balcón tiene vista al lago?
+18/06/2025;2;7;2;83726194;T;05/06/2025;400000;¿Hay transporte disponible desde el aeropuerto?
+25/06/2025;4;8;5;10293847;T;10/06/2025;360000;¿Se permite el ingreso de mascotas pequeñas?
+02/07/2025;3;9;4;56473829;P;15/06/2025;540000;¿La vista al mar incluye atardeceres?
+10/07/2025;5;10;2;19283746;T;20/06/2025;600000;¿Hay estacionamiento privado para visitantes?
+29/05/2024;4;11;8;83726194;P;10/05/2024;450000;Comentario de prueba 8
+01/09/2025;4;12;6;19283746;P;15/08/2025;520000;¿Se puede usar la cocina libremente?
+10/09/2025;2;13;2;83726194;T;20/08/2025;240000;¿El apartamento tiene blackout en las ventanas?
+15/09/2025;1;14;5;47586920;P;01/09/2025;90000;Necesito una cuna para bebé, ¿es posible?
+22/09/2025;6;15;4;10293847;T;05/09/2025;1080000;¿Se puede organizar un paseo en lancha?
