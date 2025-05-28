@@ -130,7 +130,7 @@
  { 
     size_t total_size = sizeof(*this); 
     total_size += strlen(m_password) + 1;
- 
+    total_size += sizeof(Linked_List<Reserva*>);
     return total_size;
  }
 
@@ -219,6 +219,5 @@ Huesped::~Huesped()
     delete[] m_nombre;
     delete[] m_password;
     delete m_reservas;
-    std::cout << "Huesped: " << m_documento << " destruido" << std::endl;
 }
  

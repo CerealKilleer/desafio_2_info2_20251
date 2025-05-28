@@ -203,6 +203,5 @@ Anfitrion::~Anfitrion()
     delete m_alojamientos;
     m_alojamientos = nullptr;
     m_password = nullptr;
-    std::cout << "Anfitrion: " << m_documento << " destruido" << std::endl;
 }
  

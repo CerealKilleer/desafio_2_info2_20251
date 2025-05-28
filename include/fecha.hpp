@@ -146,6 +146,13 @@ public:
      * @brief Muestra la fecha en un formato legible.
      */
     void formato_legible() const;
+
+    /**
+     * @brief Destructor de la clase Fecha.
+     * 
+     * No se requiere liberar memoria ya que no se usan punteros dinámicos.
+     */
+    ~Fecha();
 };
 
 #endif

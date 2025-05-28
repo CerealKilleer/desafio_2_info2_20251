@@ -253,7 +253,7 @@ size_t Alojamiento::get_size() const
     total_size += strlen(m_departamento) + 1;
     total_size += strlen(m_municipio) + 1;
     total_size += strlen(m_amenidades) + 1;
-    total_size += m_reservas->get_size() * sizeof(Reserva*);
+    total_size += sizeof(Linked_List<Reserva*>);
     g_strlen_cnt += 5;
     return total_size;
 }

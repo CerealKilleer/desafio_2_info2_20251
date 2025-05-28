@@ -7,7 +7,9 @@
 /**
  * @brief Clase para manejar fechas con validación y operaciones básicas.
  */
-Fecha::Fecha() : dia(DIA_DEFECTO), mes(MES_DEFECTO), anio(ANIO_DEFECTO) {}
+Fecha::Fecha() : dia(DIA_DEFECTO), mes(MES_DEFECTO), anio(ANIO_DEFECTO) {
+    g_tamano += sizeof(Fecha);
+}
 
 /**
  * @brief Constructor con parámetros, valida la fecha y asigna valores.
@@ -277,4 +279,14 @@ uint8_t Fecha::dia_semana() const {
 
     uint16_t h = (d + 13*(m + 1)/5 + k + k/4 + j/4 + 5*j) % 7;
     return (h + 6) % 7;
+}
+
+/**
+ * @brief Destructor de la clase Fecha.
+ * 
+ * No se requiere liberar memoria ya que no se usan punteros dinámicos.
+ */
+Fecha::~Fecha()
+{
+    g_tamano -= this->get_size();
 }

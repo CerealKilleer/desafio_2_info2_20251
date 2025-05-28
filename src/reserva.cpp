@@ -163,9 +163,6 @@ const Fecha *Reserva::get_fecha_salida() const
 
 size_t Reserva::get_size() const {
     size_t total_size = sizeof(Reserva);
-    total_size += m_fecha_entrada->get_size();
-    total_size += m_fecha_salida->get_size();
-    total_size += m_fecha_pago->get_size();
     total_size += strlen(m_anotaciones) + 1;
     g_strlen_cnt++;
     return total_size;
