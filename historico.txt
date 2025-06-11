@@ -1,0 +1,10 @@
+26/05/2024;3;10;7;19283746;P;20/05/2024;480000;¿Tiene lavadora disponible?
+18/04/2024;5;9;3;83726194;E;15/04/2024;1000000;¿Está cerca de transporte público?
+05/04/2024;2;8;6;10293847;D;04/04/2024;300000;¿El wifi es de alta velocidad?
+12/03/2024;4;7;9;56473829;P;10/03/2024;520000;¿La zona es segura por la noche?
+27/02/2024;3;6;13;47586920;E;25/02/2024;390000;¿Puedo llevar a mi gato?
+01/02/2024;7;5;8;83726194;P;30/01/2024;945000;¿Hay supermercado cerca?
+10/11/2023;2;4;5;10293847;D;09/11/2023;260000;¿Incluye parqueadero cubierto?
+05/08/2023;4;3;2;19283746;E;01/08/2023;500000;¿Hay restaurantes cerca?
+21/05/2023;3;2;10;17654321;P;18/05/2023;420000;¿El agua caliente funciona bien?
+14/03/2023;1;1;1;47586920;E;12/03/2023;150000;¿Está permitido fumar en el alojamiento?

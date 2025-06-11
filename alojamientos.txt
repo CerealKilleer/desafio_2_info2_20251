@@ -1,11 +1,18 @@
-10
-Casa del Lago;1;12345678;Antioquia;Medellín;1;Cra 12 #34-56;150000;Wifi,TV,Cocina,Parqueadero
-Apartamento Central;2;87654321;Cundinamarca;Bogotá;2;Av. 68 #45-21 Apto 302;120000;Wifi,TV,Aire acondicionado
-Casa Campestre;3;11223344;Valle del Cauca;Cali;1;Km 3 Vía a Jamundí;200000;Piscina,Wifi,Cocina,BBQ
-Apto Vista al Mar;4;99887766;Magdalena;Santa Marta;2;Carrera 1 #22-10 Apto 804;180000;Wifi,TV,Vista al mar,Aire acondicionado
-La Cabaña de Ana;5;55667788;Boyacá;Villa de Leyva;1;Vereda El Roble, Finca La Esperanza;90000;Cocina,Chimenea,Wifi,Estacionamiento
-Casa Colonial del Centro;6;12345678;Antioquia;Guatapé;1;Calle 5 #6-20;130000;Wifi,TV,Cocina,Balcón
-Loft Moderno Norte;7;87654321;Cundinamarca;Chía;2;Calle 15 #8-55 Apto 204;110000;Wifi,TV,Jacuzzi
-Villa Palmeras;8;11223344;Valle del Cauca;Palmira;1;Parcelación El Paraíso;180000;Piscina,BBQ,Cocina,Wifi
-Estudio Arena y Sol;9;99887766;Magdalena;El Rodadero;2;Carrera 3 #10-15 Apto 505;150000;Vista al mar,Aire acondicionado,Wifi
-Cabaña Bosque Encantado;10;55667788;Boyacá;Monguí;1;Bosque de pinos sector 3;95000;Chimenea,Naturaleza,Wifi
+17
+Casa de las Flores;1;10203040;Antioquia;Medellín;1;Cra 45 #67-89;150000;Wifi,Cocina,TV
+Loft Aurora;2;11223344;Antioquia;Medellín;2;Calle 10 #20-30 Apto 202;130000;Wifi,TV,Aire acondicionado
+Villa Encanto;3;11223344;Antioquia;Medellín;1;Transv 3 #12-50;200000;Piscina,Wifi,Cocina
+Casa Campiña;4;11223344;Antioquia;Medellín;1;Calle 23 #45-12;145000;Wifi,BBQ,TV
+Apartamento Primavera;5;22334455;Antioquia;Medellín;2;Cra 32 #15-55 Apto 301;125000;Wifi,Cocina
+Casa de los Abuelos;6;33445566;Antioquia;Medellín;1;Cra 12 #34-56;140000;Chimenea,Cocina,Wifi
+Casa Colonial;7;12345678;Antioquia;Medellín;1;Calle 7 #8-45;160000;Wifi,Cocina,Balcón
+Loft San Joaquín;8;12345678;Antioquia;Medellín;2;Cra 50 #40-21 Apto 402;135000;Wifi,TV
+Casa San Lucas;9;12345678;Antioquia;Medellín;1;Carrera 80 #30-60;170000;Wifi,BBQ,TV
+Apto Studio Norte;10;44556677;Antioquia;Medellín;2;Calle 60 #22-22 Apto 105;110000;Wifi,Aire acondicionado
+Villa Trópico;11;44556677;Antioquia;Medellín;1;Cra 5 #11-77;195000;Piscina,Cocina,Wifi
+Refugio Moderno;12;44556677;Antioquia;Medellín;2;Av. 80 #10-60 Apto 904;140000;Wifi,TV,Cocina
+Rincón de la Montaña;13;99887766;Antioquia;Medellín;1;Calle 13 #21-10;130000;Wifi,Naturaleza
+Casa del Río;14;55667788;Antioquia;Medellín;1;Cra 14 #15-20;120000;Wifi,Parqueadero
+Loft de la 33;15;87654321;Antioquia;Medellín;2;Av. 33 #44-55 Apto 301;125000;Wifi,Cocina,Aire acondicionado
+Finca Los Pinos;16;33445566;Antioquia;Rio Negro;1;Vereda El Carmen, Km 4;180000;Naturaleza,Chimenea,Wifi
+Cabaña Silvestre;17;33445566;Antioquia;Copacabana;1;Via La Chuscala km 2;110000;Naturaleza,Wifi
